@@ -1,7 +1,7 @@
 package pg
 
 import (
-	"auth/internal/model"
+	"auth/pkg/model"
 	embed "auth/sql/postgresql"
 	"context"
 	"database/sql"

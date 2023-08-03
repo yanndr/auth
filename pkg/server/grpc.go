@@ -1,10 +1,12 @@
 package server
 
 import (
-	pb "auth/api/v1"
-	"auth/internal/model"
-	"auth/internal/services"
+	"auth/pkg/model"
+	"auth/pkg/pb"
+	"auth/pkg/services"
+	"auth/pkg/validators"
 	"context"
+	"errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -27,7 +29,13 @@ func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) 
 	})
 
 	if err != nil {
-		return nil, status.Errorf(codes.AlreadyExists, "%s", err)
+		if errors.As(err, &services.UsernameAlreadyExistErr{}) {
+			return nil, status.Errorf(codes.AlreadyExists, "%s", err)
+		}
+		if errors.As(err, &validators.ValidationErr{}) {
+			return nil, status.Errorf(codes.InvalidArgument, "%s", err)
+		}
+		return nil, status.Errorf(codes.Unknown, "%s", err)
 	}
 
 	return &pb.CreateUserResponse{Success: true}, nil
@@ -36,7 +44,13 @@ func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) 
 func (a *AuthServer) Authenticate(ctx context.Context, req *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
 	token, err := a.userService.Authenticate(ctx, req.Username, req.Password)
 	if err != nil {
-		return nil, status.Errorf(codes.AlreadyExists, "%s", err)
+		if errors.Is(err, services.AutenticationErr) {
+			return &pb.AuthenticateResponse{
+				Success: false,
+				Token:   "",
+			}, nil
+		}
+		return nil, status.Errorf(codes.Unknown, "%s", err)
 	}
 
 	return &pb.AuthenticateResponse{

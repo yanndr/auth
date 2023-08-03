@@ -5,6 +5,7 @@ type Configuration struct {
 	Address  string
 	Port     int
 	Database DatabaseConfiguration
+	Password Password
 }
 
 type DatabaseConfiguration struct {
@@ -13,4 +14,10 @@ type DatabaseConfiguration struct {
 	UserName string
 	Password string
 	DbName   string
+}
+
+type Password struct {
+	MinLength    int
+	MinNumeric   int
+	MinUpperCase int
 }

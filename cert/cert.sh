@@ -1,16 +1,68 @@
 rm *.pem
+# Create the server CA certs.
+openssl req -x509                                     \
+  -newkey rsa:4096                                    \
+  -nodes                                              \
+  -days 3650                                          \
+  -keyout ca_key.pem                                  \
+  -out ca_cert.pem                                    \
+  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-server_ca/   \
+  -config ./openssl.cnf                               \
+  -extensions test_ca                                 \
+  -sha256
 
-# 1. Generate CA's private key and self-signed certificate
-openssl req -x509 -newkey rsa:4096 -days 365 -nodes -keyout ca-key.pem -out ca-cert.pem -subj "/C=CA/ST=BC/L=Vancouver/O=Yann Corp/OU=AuthService/CN=AuthCA/emailAddress=yann.druffin@gmail.com"
+# Create the client CA certs.
+openssl req -x509                                     \
+  -newkey rsa:4096                                    \
+  -nodes                                              \
+  -days 3650                                          \
+  -keyout client_ca_key.pem                           \
+  -out client_ca_cert.pem                             \
+  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-client_ca/   \
+  -config ./openssl.cnf                               \
+  -extensions test_ca                                 \
+  -sha256
 
-echo "CA's self-signed certificate"
-openssl x509 -in ca-cert.pem -noout -text
+# Generate a server cert.
+openssl genrsa -out server_key.pem 4096
+openssl req -new                                    \
+  -key server_key.pem                               \
+  -days 3650                                        \
+  -out server_csr.pem                               \
+  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-server1/   \
+  -config ./openssl.cnf                             \
+  -reqexts test_server
+openssl x509 -req           \
+  -in server_csr.pem        \
+  -CAkey ca_key.pem         \
+  -CA ca_cert.pem           \
+  -days 3650                \
+  -set_serial 1000          \
+  -out server_cert.pem      \
+  -extfile ./openssl.cnf    \
+  -extensions test_server   \
+  -sha256
+openssl verify -verbose -CAfile ca_cert.pem  server_cert.pem
 
-# 2. Generate web server's private key and certificate signing request (CSR)
-openssl req -newkey rsa:4096 -nodes -keyout server-key.pem -out server-req.pem -subj "/C=CA/ST=BC/L=Vancouver/O=PYann Corp/OU=AuthService/CN=localhost/emailAddress=yann.druffin@gmail.com"
+# Generate a client cert.
+openssl genrsa -out client_key.pem 4096
+openssl req -new                                    \
+  -key client_key.pem                               \
+  -days 3650                                        \
+  -out client_csr.pem                               \
+  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-client1/   \
+  -config ./openssl.cnf                             \
+  -reqexts test_client
+openssl x509 -req           \
+  -in client_csr.pem        \
+  -CAkey client_ca_key.pem  \
+  -CA client_ca_cert.pem    \
+  -days 3650                \
+  -set_serial 1000          \
+  -out client_cert.pem      \
+  -extfile ./openssl.cnf    \
+  -extensions test_client   \
+  -sha256
+openssl verify -verbose -CAfile client_ca_cert.pem  client_cert.pem
 
-# 3. Use CA's private key to sign web server's CSR and get back the signed certificate
-openssl x509 -req -in server-req.pem -days 60 -CA ca-cert.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem
-
-echo "Server's signed certificate"
-openssl x509 -in server-cert.pem -noout -text
+rm *_csr.pem

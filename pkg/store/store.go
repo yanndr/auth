@@ -1,8 +1,8 @@
 package store
 
 import (
-	"auth/internal/model"
-	"auth/internal/store/pg"
+	"auth/pkg/model"
+	"auth/pkg/store/pg"
 	"context"
 	"database/sql"
 )

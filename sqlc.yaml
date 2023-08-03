@@ -7,14 +7,5 @@ sql:
     gen:
       go:
         package: "pg"
-        out: "internal/store/pg"
+        out: "pkg/store/pg"
         emit_interface: true
-#  - engine: "mysql"
-#    queries:
-#      - "sql/mysql/users.sql"
-#    schema: "sql/mysql/schema.sql"
-#    gen:
-#      go:
-#        package: "mysql"
-#        out: "internal/store/mysql"
-#        emit_interface: true

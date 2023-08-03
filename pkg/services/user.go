@@ -1,9 +1,11 @@
 package services
 
 import (
-	"auth/internal/model"
-	"auth/internal/store"
+	"auth/pkg/model"
+	"auth/pkg/store"
+	"auth/pkg/validators"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -17,21 +19,28 @@ type UserService interface {
 
 type userService struct {
 	userStore store.UserStore
+	validator validators.Validator
 }
 
-func NewUserService(userStore store.UserStore) UserService {
+func NewUserService(userStore store.UserStore, validator validators.Validator) UserService {
 	return &userService{
 		userStore: userStore,
+		validator: validator,
 	}
 }
 
 func (s *userService) Create(ctx context.Context, user model.User) error {
+	err := s.validator.Validate(user)
+	if err != nil {
+		return err
+	}
+
 	u, err := s.userStore.Get(ctx, user.Username)
 	if err != nil {
 		return err
 	}
 	if u != nil {
-		return fmt.Errorf("user already exist")
+		return UsernameAlreadyExistErr{user.Username}
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
@@ -55,11 +64,14 @@ func (s *userService) Authenticate(ctx context.Context, username, password strin
 		return "", err
 	}
 	if u == nil {
-		return "", fmt.Errorf("user %s doesn't exist", username)
+		return "", AutenticationErr
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return "", AutenticationErr
+		}
 		return "", err
 	}
 

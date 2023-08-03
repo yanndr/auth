@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth.v1;
 
-option go_package = "auth/api/auth_v1";
+option go_package = "pkg/pb";
 
 
 service auth {

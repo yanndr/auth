@@ -7,3 +7,7 @@ database:
   userName: "auth_user"
   password: "autPassw@ord"
   dbName: "auth"
+password:
+  minLength: 6
+  minNumeric: 1
+  minUpperCase: 1

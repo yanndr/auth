@@ -1,14 +1,16 @@
 package main
 
 import (
-	pb "auth/api/v1"
-	"auth/internal/model"
-	"auth/internal/services"
-	"auth/internal/store"
-	"auth/internal/store/pg"
-	"auth/server"
+	"auth/pkg/model"
+	"auth/pkg/pb"
+	"auth/pkg/server"
+	"auth/pkg/services"
+	"auth/pkg/store"
+	"auth/pkg/store/pg"
+	"auth/pkg/validators"
 	"flag"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -28,7 +30,6 @@ var (
 
 func main() {
 	flag.Parse()
-	*tls = true
 	log.Printf("starting auth service %v", Version)
 
 	viper.AutomaticEnv()
@@ -53,7 +54,15 @@ func main() {
 
 	defer db.Close()
 	us := store.NewUserStore(pg.New(db))
-	s := services.NewUserService(us)
+	userValidator := validators.UserValidator{
+		Validator: validator.New(),
+		PasswordValidator: validators.PasswordValidator{
+			MinLength:  configuration.Password.MinLength,
+			MinUpper:   configuration.Password.MinUpperCase,
+			MinNumeric: configuration.Password.MinNumeric,
+		},
+	}
+	s := services.NewUserService(us, userValidator)
 
 	grpcListener, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.Port))
 	if err != nil {
@@ -63,10 +72,10 @@ func main() {
 	var opts []grpc.ServerOption
 	if *tls {
 		if *certFile == "" {
-			*certFile = "cert/server-cert.pem"
+			*certFile = "cert/server_cert.pem"
 		}
 		if *keyFile == "" {
-			*keyFile = "cert/server-key.pem"
+			*keyFile = "cert/server_key.pem"
 		}
 		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
 		if err != nil {
