@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  db:
+    build: sql/postgresql
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: passw@rd
+      AUTH_USER_PWD: autPassw@ord
+      AUTH_DB: auth
+      AUTH_USER: auth_user
