@@ -1,0 +1,19 @@
+# Jetbrains IDEs
+.idea
+
+go.sum
+
+# PEM files
+*.pem
+*.srl
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.new
+*.old
+*.out
+
+# Dependency directories
+vendor/

@@ -8,8 +8,8 @@ import (
 )
 
 type UserStore interface {
-	Create(user model.User) error
-	Get(username string) (*model.User, error)
+	Create(ctx context.Context, user model.User) error
+	Get(ctx context.Context, username string) (*model.User, error)
 }
 
 type userStore struct {
@@ -20,8 +20,8 @@ func NewUserStore(q pg.Querier) UserStore {
 	return &userStore{querier: q}
 }
 
-func (s *userStore) Create(user model.User) error {
-	_, err := s.querier.CreateUser(context.Background(), pg.CreateUserParams{Username: user.Username, Password: user.Password})
+func (s *userStore) Create(ctx context.Context, user model.User) error {
+	_, err := s.querier.CreateUser(ctx, pg.CreateUserParams{Username: user.Username, Password: user.Password})
 	if err != nil {
 		return err
 	}
@@ -29,9 +29,9 @@ func (s *userStore) Create(user model.User) error {
 	return nil
 }
 
-func (s *userStore) Get(username string) (*model.User, error) {
+func (s *userStore) Get(ctx context.Context, username string) (*model.User, error) {
 
-	u, err := s.querier.GetUser(context.Background(), username)
+	u, err := s.querier.GetUser(ctx, username)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err

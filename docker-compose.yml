@@ -3,7 +3,7 @@ version: '3.4'
 services:
   db:
     build: sql/postgresql
-    restart: always
+    restart: unless-stopped
     ports:
       - '5432:5432'
     environment:
@@ -11,3 +11,12 @@ services:
       AUTH_USER_PWD: autPassw@ord
       AUTH_DB: auth
       AUTH_USER: auth_user
+
+  authservice:
+    depends_on:
+      db:
+        condition: service_started
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_HOST: db

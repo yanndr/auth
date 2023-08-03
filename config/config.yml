@@ -1,0 +1,9 @@
+network: "tcp"
+address: ""
+port: 50051
+database:
+  host: "localhost"
+  port: 5432
+  userName: "auth_user"
+  password: "autPassw@ord"
+  dbName: "auth"

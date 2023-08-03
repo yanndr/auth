@@ -1,4 +1,9 @@
+VERSION=$(shell cat cmd/authService/version)
+LDFLAGS=-ldflags "-X main.version=${VERSION}"
 
+.PHONY: build
+build:
+	CGO_ENABLED=0 go build ${LDFLAGS} -o AuthService cmd/authService/main.go
 
 .PHONY: proto
 proto:

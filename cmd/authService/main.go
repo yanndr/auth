@@ -7,26 +7,46 @@ import (
 	"auth/internal/store"
 	"auth/internal/store/pg"
 	"auth/server"
+	"flag"
 	"fmt"
 	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
+	"strings"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "auth_user"
-	password = "autPassw@ord"
-	dbname   = "auth"
+var Version = "v0.1-dev"
 
-	gRPCPort = ":50051"
+var (
+	tls      = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
+	certFile = flag.String("cert_file", "", "The TLS cert file")
+	keyFile  = flag.String("key_file", "", "The TLS key file")
 )
 
 func main() {
+	flag.Parse()
+	*tls = true
+	log.Printf("starting auth service %v", Version)
 
-	db, err := pg.Open(host, port, user, password, dbname)
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	configuration := &model.Configuration{}
+	viper.SetConfigName("config")
+	viper.AddConfigPath("./config")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file, %s", err)
+	}
+
+	err := viper.Unmarshal(configuration)
+	if err != nil {
+		log.Fatalf("Error reading config file, %s", err)
+	}
+
+	db, err := pg.Open(configuration.Database)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,39 +54,32 @@ func main() {
 	defer db.Close()
 	us := store.NewUserStore(pg.New(db))
 	s := services.NewUserService(us)
-	err = s.Create(model.User{Username: "bob", Password: "gloups"})
-	if err != nil {
-		fmt.Println(err)
-	}
 
-	t, err := s.Authenticate("yann", "gloups")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(t)
-
-	grpcListener, err := net.Listen("tcp", gRPCPort)
+	grpcListener, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.Port))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	var opts []grpc.ServerOption
-	//if *tls {
-	//	if *certFile == "" {
-	//		*certFile = data.Path("x509/server_cert.pem")
-	//	}
-	//	if *keyFile == "" {
-	//		*keyFile = data.Path("x509/server_key.pem")
-	//	}
-	//	creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
-	//	if err != nil {
-	//		log.Fatalf("Failed to generate credentials: %v", err)
-	//	}
-	//	opts = []grpc.ServerOption{grpc.Creds(creds)}
-	//}
+	if *tls {
+		if *certFile == "" {
+			*certFile = "cert/server-cert.pem"
+		}
+		if *keyFile == "" {
+			*keyFile = "cert/server-key.pem"
+		}
+		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
+		if err != nil {
+			log.Fatalf("Failed to generate credentials: %v", err)
+		}
+		opts = []grpc.ServerOption{grpc.Creds(creds)}
+	}
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterAuthServer(grpcServer, server.NewServer(s))
-	grpcServer.Serve(grpcListener)
+	log.Printf("listening on %s:%v", configuration.Address, configuration.Port)
+	err = grpcServer.Serve(grpcListener)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }

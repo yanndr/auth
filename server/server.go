@@ -20,8 +20,8 @@ func NewServer(userService services.UserService) *AuthServer {
 	}
 }
 
-func (a *AuthServer) CreateUser(c context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	err := a.userService.Create(model.User{
+func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	err := a.userService.Create(ctx, model.User{
 		Username: req.Username,
 		Password: req.Password,
 	})
@@ -33,8 +33,8 @@ func (a *AuthServer) CreateUser(c context.Context, req *pb.CreateUserRequest) (*
 	return &pb.CreateUserResponse{Success: true}, nil
 }
 
-func (a *AuthServer) Authenticate(c context.Context, req *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
-	token, err := a.userService.Authenticate(req.Username, req.Password)
+func (a *AuthServer) Authenticate(ctx context.Context, req *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+	token, err := a.userService.Authenticate(ctx, req.Username, req.Password)
 	if err != nil {
 		return nil, status.Errorf(codes.AlreadyExists, "%s", err)
 	}

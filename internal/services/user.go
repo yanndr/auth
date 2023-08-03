@@ -3,6 +3,7 @@ package services
 import (
 	"auth/internal/model"
 	"auth/internal/store"
+	"context"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -10,8 +11,8 @@ import (
 )
 
 type UserService interface {
-	Create(user model.User) error
-	Authenticate(username, password string) (string, error)
+	Create(ctx context.Context, user model.User) error
+	Authenticate(ctx context.Context, username, password string) (string, error)
 }
 
 type userService struct {
@@ -24,8 +25,8 @@ func NewUserService(userStore store.UserStore) UserService {
 	}
 }
 
-func (s *userService) Create(user model.User) error {
-	u, err := s.userStore.Get(user.Username)
+func (s *userService) Create(ctx context.Context, user model.User) error {
+	u, err := s.userStore.Get(ctx, user.Username)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func (s *userService) Create(user model.User) error {
 	}
 
 	user.Password = string(hashedPassword)
-	err = s.userStore.Create(user)
+	err = s.userStore.Create(ctx, user)
 
 	if err != nil {
 		return err
@@ -48,8 +49,8 @@ func (s *userService) Create(user model.User) error {
 	return nil
 }
 
-func (s *userService) Authenticate(username, password string) (string, error) {
-	u, err := s.userStore.Get(username)
+func (s *userService) Authenticate(ctx context.Context, username, password string) (string, error) {
+	u, err := s.userStore.Get(ctx, username)
 	if err != nil {
 		return "", err
 	}
