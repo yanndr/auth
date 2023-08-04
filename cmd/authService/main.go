@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth/pkg/jwt"
 	"auth/pkg/model"
 	"auth/pkg/pb"
 	"auth/pkg/server"
@@ -8,28 +9,26 @@ import (
 	"auth/pkg/store"
 	"auth/pkg/store/pg"
 	"auth/pkg/validators"
-	"flag"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
 	"log"
 	"net"
+	"os"
 	"strings"
+	"time"
 )
 
 var Version = "v0.1-dev"
 
-var (
-	tls      = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	certFile = flag.String("cert_file", "", "The TLS cert file")
-	keyFile  = flag.String("key_file", "", "The TLS key file")
-)
-
 func main() {
-	flag.Parse()
 	log.Printf("starting auth service %v", Version)
 
 	viper.AutomaticEnv()
@@ -51,44 +50,70 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer db.Close()
+
 	us := store.NewUserStore(pg.New(db))
 	userValidator := validators.UserValidator{
-		Validator: validator.New(),
-		PasswordValidator: validators.PasswordValidator{
-			MinLength:  configuration.Password.MinLength,
-			MinUpper:   configuration.Password.MinUpperCase,
-			MinNumeric: configuration.Password.MinNumeric,
-		},
+		Validator:         validator.New(),
+		PasswordValidator: validators.NewPasswordValidator(configuration.Password),
 	}
-	s := services.NewUserService(us, userValidator)
+	jwtGenerator := jwt.NewGenerator(jwtgo.SigningMethodES256, configuration.Token.SignedKey, "authService", time.Minute*time.Duration(configuration.Token.ExpDuration))
 
-	grpcListener, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.Port))
-	if err != nil {
-		log.Fatal(err)
-	}
+	s := services.NewUserService(us, jwtGenerator, userValidator)
 
 	var opts []grpc.ServerOption
-	if *tls {
-		if *certFile == "" {
-			*certFile = "cert/server_cert.pem"
-		}
-		if *keyFile == "" {
-			*keyFile = "cert/server_key.pem"
-		}
-		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
+	if configuration.TLSConfig.UseTLS {
+		tlsConfig, err := SetupTLSConfig(configuration.TLSConfig)
 		if err != nil {
-			log.Fatalf("Failed to generate credentials: %v", err)
+			log.Fatal(err)
 		}
-		opts = []grpc.ServerOption{grpc.Creds(creds)}
-	}
-	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterAuthServer(grpcServer, server.NewServer(s))
-	log.Printf("listening on %s:%v", configuration.Address, configuration.Port)
-	err = grpcServer.Serve(grpcListener)
-	if err != nil {
-		log.Fatal(err)
+		creds := credentials.NewTLS(tlsConfig)
+		opts = append(opts, grpc.Creds(creds))
 	}
 
+	lis, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.GRPCPort))
+	if err != nil {
+		log.Fatalf("could not list on %s:%v: %s", configuration.Address, configuration.GRPCPort, err)
+	}
+
+	srv := grpc.NewServer(opts...)
+
+	pb.RegisterAuthServer(srv, server.NewServer(s))
+
+	if err := srv.Serve(lis); err != nil {
+		log.Fatalf("grpc serve error: %s", err)
+	}
+}
+
+func SetupTLSConfig(cfg model.TLSConfig) (*tls.Config, error) {
+	var err error
+	tlsConfig := &tls.Config{}
+	if cfg.CertFile != "" && cfg.KeyFile != "" {
+		tlsConfig.Certificates = make([]tls.Certificate, 1)
+		tlsConfig.Certificates[0], err = tls.LoadX509KeyPair(
+			cfg.CertFile,
+			cfg.KeyFile,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if cfg.CAFile != "" {
+		b, err := os.ReadFile(cfg.CAFile)
+		if err != nil {
+			return nil, err
+		}
+		ca := x509.NewCertPool()
+		ok := ca.AppendCertsFromPEM([]byte(b))
+		if !ok {
+			return nil, fmt.Errorf(
+				"failed to parse root certificate: %q",
+				cfg.CAFile,
+			)
+		}
+		tlsConfig.ClientCAs = ca
+		tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+		tlsConfig.ServerName = cfg.ServerAddress
+	}
+	return tlsConfig, nil
 }

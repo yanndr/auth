@@ -20,3 +20,6 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_HOST: db
+      GRPCPORT: 50051
+    ports:
+      - '50051:50051'

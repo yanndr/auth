@@ -1,15 +1,13 @@
 package services
 
 import (
+	"auth/pkg/jwt"
 	"auth/pkg/model"
 	"auth/pkg/store"
 	"auth/pkg/validators"
 	"context"
 	"errors"
-	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 type UserService interface {
@@ -18,14 +16,16 @@ type UserService interface {
 }
 
 type userService struct {
-	userStore store.UserStore
-	validator validators.Validator
+	userStore    store.UserStore
+	validator    validators.Validator
+	jwtGenerator jwt.Generator
 }
 
-func NewUserService(userStore store.UserStore, validator validators.Validator) UserService {
+func NewUserService(userStore store.UserStore, jwtGenerator jwt.Generator, validator validators.Validator) UserService {
 	return &userService{
-		userStore: userStore,
-		validator: validator,
+		userStore:    userStore,
+		jwtGenerator: jwtGenerator,
+		validator:    validator,
 	}
 }
 
@@ -75,29 +75,9 @@ func (s *userService) Authenticate(ctx context.Context, username, password strin
 		return "", err
 	}
 
-	token, err := generateJWT(u)
+	token, err := s.jwtGenerator.GenerateJWT(u)
 	if err != nil {
 		return "", err
 	}
 	return token, nil
-}
-
-func generateJWT(user *model.User) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
-
-	claims["authorized"] = true
-	claims["sub"] = user.Username
-	claims["iss"] = "authService"
-	claims["exp"] = time.Now().Add(time.Minute * 5).Unix()
-
-	tokenString, err := token.SignedString([]byte("captainjacksparrowsayshi"))
-
-	if err != nil {
-		_ = fmt.Errorf("something went wrong: %s", err.Error())
-		return "", err
-	}
-
-	return tokenString, nil
 }

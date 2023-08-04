@@ -1,14 +1,18 @@
 package main
 
 import (
+	"auth/pkg/model"
 	"auth/pkg/pb"
 	"context"
+	ctls "crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"os"
 	"time"
 )
 
@@ -22,28 +26,33 @@ var (
 )
 
 func main() {
+
 	flag.Parse()
 	var opts []grpc.DialOption
-
 	if *tls {
-		if *caFile == "" {
-			*caFile = "cert/ca_cert.pem"
-		}
-		creds, err := credentials.NewClientTLSFromFile(*caFile, *serverHostOverride)
+
+		tlsConfig, err := SetupTLSConfig(model.TLSConfig{
+			CertFile:      "cert/client_cert.pem",
+			KeyFile:       "cert/client_key.pem",
+			CAFile:        "cert/ca_cert.pem",
+			ServerAddress: "localhost:50051",
+		})
 		if err != nil {
-			log.Fatalf("Failed to create TLS credentials: %v", err)
+			log.Fatal(err)
 		}
-		opts = append(opts, grpc.WithTransportCredentials(creds))
+		creds := credentials.NewTLS(tlsConfig)
+		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}
 	} else {
-		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		opts = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	}
 
+	// Create a connection with the TLS credentials
 	conn, err := grpc.Dial(*serverAddr, opts...)
 	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
+		log.Fatalf("could not dial %s: %s", *serverAddr, err)
 	}
-	defer conn.Close()
 
+	// Initialize the client and make the request
 	client := pb.NewAuthClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -63,4 +72,38 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(tResp.Token)
+}
+
+func SetupTLSConfig(cfg model.TLSConfig) (*ctls.Config, error) {
+	var err error
+	tlsConfig := &ctls.Config{}
+	if cfg.CertFile != "" && cfg.KeyFile != "" {
+		tlsConfig.Certificates = make([]ctls.Certificate, 1)
+		tlsConfig.Certificates[0], err = ctls.LoadX509KeyPair(
+			cfg.CertFile,
+			cfg.KeyFile,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if cfg.CAFile != "" {
+		b, err := os.ReadFile(cfg.CAFile)
+		if err != nil {
+			return nil, err
+		}
+		ca := x509.NewCertPool()
+		ok := ca.AppendCertsFromPEM([]byte(b))
+		if !ok {
+			return nil, fmt.Errorf(
+				"failed to parse root certificate: %q",
+				cfg.CAFile,
+			)
+		}
+
+		tlsConfig.RootCAs = ca
+
+		tlsConfig.ServerName = cfg.ServerAddress
+	}
+	return tlsConfig, nil
 }

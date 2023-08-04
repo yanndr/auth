@@ -11,7 +11,7 @@ type ValidationErr struct {
 }
 
 func (v ValidationErr) Error() string {
-	return fmt.Sprintf("validation error: %s", v.err)
+	return fmt.Sprintf("validation error: %+v", v.err)
 }
 
 func NewValidationErr(err error) ValidationErr {
@@ -24,7 +24,7 @@ type Validator interface {
 
 type UserValidator struct {
 	Validator         *validator.Validate
-	PasswordValidator PasswordValidator
+	PasswordValidator Validator
 }
 
 func (v UserValidator) Validate(value any) error {

@@ -1,6 +1,12 @@
 network: "tcp"
 address: ""
-port: 50051
+gRPCPort: 50051
+TLSConfig:
+  useTLS: true
+  certFile: "cert/server_cert.pem"
+  keyFile: "cert/server_key.pem"
+  CAFile: ""
+  serverAddress: "127.0.0.1"
 database:
   host: "localhost"
   port: 5432
@@ -11,3 +17,8 @@ password:
   minLength: 6
   minNumeric: 1
   minUpperCase: 1
+  minLowerCase: 1
+  minSpecial: 0
+token:
+  signedKey: "fksdljfkljsd;akfjlfsdkfjsdkla"
+  expDuration: 5

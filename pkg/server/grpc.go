@@ -9,6 +9,7 @@ import (
 	"errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"strings"
 )
 
 type AuthServer struct {
@@ -24,8 +25,8 @@ func NewServer(userService services.UserService) *AuthServer {
 
 func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	err := a.userService.Create(ctx, model.User{
-		Username: req.Username,
-		Password: req.Password,
+		Username: strings.TrimSpace(req.Username),
+		Password: strings.TrimSpace(req.Password),
 	})
 
 	if err != nil {
@@ -42,7 +43,12 @@ func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) 
 }
 
 func (a *AuthServer) Authenticate(ctx context.Context, req *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
-	token, err := a.userService.Authenticate(ctx, req.Username, req.Password)
+	token, err := a.userService.Authenticate(
+		ctx,
+		strings.TrimSpace(req.Username),
+		strings.TrimSpace(req.Password),
+	)
+
 	if err != nil {
 		if errors.Is(err, services.AutenticationErr) {
 			return &pb.AuthenticateResponse{

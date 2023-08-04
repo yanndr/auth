@@ -1,18 +1,28 @@
 package validators
 
 import (
+	"auth/pkg/model"
 	"fmt"
 	"strings"
 	"unicode"
 )
 
 type PasswordValidator struct {
-	MinLength           int
-	MinSpecialCharacter int
-	MinNumeric          int
-	MinSpecial          int
-	MinUpper            int
-	MinLower            int
+	MinLength  int
+	MinNumeric int
+	MinSpecial int
+	MinUpper   int
+	MinLower   int
+}
+
+func NewPasswordValidator(configuration model.Password) *PasswordValidator {
+	return &PasswordValidator{
+		MinLength:  configuration.MinLength,
+		MinNumeric: configuration.MinNumeric,
+		MinSpecial: configuration.MinSpecial,
+		MinUpper:   configuration.MinUpperCase,
+		MinLower:   configuration.MinLowerCase,
+	}
 }
 
 func (v PasswordValidator) Validate(value any) error {
@@ -37,13 +47,19 @@ func (v PasswordValidator) Validate(value any) error {
 
 	sb := strings.Builder{}
 	if length < v.MinLength {
-		sb.WriteString(fmt.Sprintf("must be at least %v characters", v.MinLength))
+		sb.WriteString(fmt.Sprintf("must be at least %v characters\n", v.MinLength))
 	}
 	if numerics < v.MinNumeric {
-		sb.WriteString(fmt.Sprintf("must containt at least %v numeric characters", v.MinNumeric))
+		sb.WriteString(fmt.Sprintf("must containt at least %v numeric characters\n", v.MinNumeric))
 	}
 	if upper < v.MinUpper {
-		sb.WriteString(fmt.Sprintf("must containt at least %v uppercase characters", v.MinUpper))
+		sb.WriteString(fmt.Sprintf("must containt at least %v uppercase characters\n", v.MinUpper))
+	}
+	if lower < v.MinLower {
+		sb.WriteString(fmt.Sprintf("must containt at least %v lowercase characters\n", v.MinLower))
+	}
+	if special < v.MinSpecial {
+		sb.WriteString(fmt.Sprintf("must containt at least %v sepcial characters\n", v.MinSpecial))
 	}
 
 	if sb.Len() > 0 {

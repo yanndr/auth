@@ -65,4 +65,5 @@ openssl x509 -req           \
   -sha256
 openssl verify -verbose -CAfile client_ca_cert.pem  client_cert.pem
 
+
 rm *_csr.pem

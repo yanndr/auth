@@ -11,20 +11,20 @@ service auth {
 }
 
 message CreateUserRequest {
-  string username =1;
-  string password =2;
+  string username = 1;
+  string password = 2;
 }
 
 message CreateUserResponse {
-  bool success=1;
+  bool success = 1;
 }
 
 message AuthenticateRequest{
-  string username =1;
-  string password =2;
+  string username = 1;
+  string password = 2;
 }
 
 message AuthenticateResponse{
-  bool success =1;
-  string token =2;
+  bool success = 1;
+  string token = 2;
 }
