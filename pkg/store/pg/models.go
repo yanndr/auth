@@ -7,9 +7,9 @@ package pg
 import ()
 
 type User struct {
-	ID       int64
-	Username string
-	Password string
+	ID           int64
+	Username     string
+	PasswordHash string
 }
 
 type Version struct {

@@ -1,8 +1,8 @@
 package main
 
 import (
+	"auth/pkg/config"
 	"auth/pkg/jwt"
-	"auth/pkg/model"
 	"auth/pkg/pb"
 	"auth/pkg/server"
 	"auth/pkg/services"
@@ -12,10 +12,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -23,7 +23,6 @@ import (
 	"net"
 	"os"
 	"strings"
-	"time"
 )
 
 var Version = "v0.1-dev"
@@ -33,17 +32,9 @@ func main() {
 
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	configuration := &model.Configuration{}
-	viper.SetConfigName("config")
-	viper.AddConfigPath("./config")
-
-	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file, %s", err)
-	}
-
-	err := viper.Unmarshal(configuration)
+	configuration, err := config.LoadConfiguration("config", "./config")
 	if err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		log.Fatal(err)
 	}
 
 	db, err := pg.Open(configuration.Database)
@@ -52,17 +43,26 @@ func main() {
 	}
 	defer db.Close()
 
-	us := store.NewUserStore(pg.New(db))
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatal(err)
+	}
+	zap.ReplaceGlobals(logger)
+
+	userStore := store.NewUserStore(pg.New(db))
 	userValidator := validators.UserValidator{
 		Validator:         validator.New(),
 		PasswordValidator: validators.NewPasswordValidator(configuration.Password),
 	}
-	jwtGenerator := jwt.NewGenerator(jwtgo.SigningMethodES256, configuration.Token.SignedKey, "authService", time.Minute*time.Duration(configuration.Token.ExpDuration))
 
-	s := services.NewUserService(us, jwtGenerator, userValidator)
+	jwtGenerator := jwt.NewGenerator(configuration.Token)
+
+	userService := services.NewUserService(userStore, userValidator)
+	authService := &services.JwtAuthenticationService{UserStore: userStore, JwtGenerator: jwtGenerator}
 
 	var opts []grpc.ServerOption
 	if configuration.TLSConfig.UseTLS {
+		logger.Info("setup TLS")
 		tlsConfig, err := SetupTLSConfig(configuration.TLSConfig)
 		if err != nil {
 			log.Fatal(err)
@@ -73,19 +73,19 @@ func main() {
 
 	lis, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.GRPCPort))
 	if err != nil {
-		log.Fatalf("could not list on %s:%v: %s", configuration.Address, configuration.GRPCPort, err)
+		log.Fatalf("could not listen on %s:%v: %s", configuration.Address, configuration.GRPCPort, err)
 	}
 
 	srv := grpc.NewServer(opts...)
 
-	pb.RegisterAuthServer(srv, server.NewServer(s))
-
+	pb.RegisterAuthServer(srv, server.NewServer(userService, authService))
+	log.Printf("listening on %s:%v ...", configuration.Address, configuration.GRPCPort)
 	if err := srv.Serve(lis); err != nil {
 		log.Fatalf("grpc serve error: %s", err)
 	}
 }
 
-func SetupTLSConfig(cfg model.TLSConfig) (*tls.Config, error) {
+func SetupTLSConfig(cfg config.TLS) (*tls.Config, error) {
 	var err error
 	tlsConfig := &tls.Config{}
 	if cfg.CertFile != "" && cfg.KeyFile != "" {

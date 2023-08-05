@@ -12,29 +12,29 @@ import (
 
 const createUser = `-- name: CreateUser :execresult
 INSERT INTO users (
-    username, password
+    username, password_hash
 ) VALUES (
              $1, $2
          )
 `
 
 type CreateUserParams struct {
-	Username string
-	Password string
+	Username     string
+	PasswordHash string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, createUser, arg.Username, arg.Password)
+	return q.db.ExecContext(ctx, createUser, arg.Username, arg.PasswordHash)
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, password FROM users
+SELECT id, username, password_hash FROM users
 WHERE username = $1 LIMIT 1
 `
 
 func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUser, username)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(&i.ID, &i.Username, &i.PasswordHash)
 	return i, err
 }

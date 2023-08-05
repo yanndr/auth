@@ -4,7 +4,7 @@ WHERE username = $1 LIMIT 1;
 
 -- name: CreateUser :execresult
 INSERT INTO users (
-    username, password
+    username, password_hash
 ) VALUES (
              $1, $2
          );

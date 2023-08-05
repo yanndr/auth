@@ -25,6 +25,5 @@ message AuthenticateRequest{
 }
 
 message AuthenticateResponse{
-  bool success = 1;
-  string token = 2;
+  string token = 1;
 }

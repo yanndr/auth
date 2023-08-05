@@ -1,7 +1,7 @@
 package main
 
 import (
-	"auth/pkg/model"
+	"auth/pkg/config"
 	"auth/pkg/pb"
 	"context"
 	ctls "crypto/tls"
@@ -31,7 +31,7 @@ func main() {
 	var opts []grpc.DialOption
 	if *tls {
 
-		tlsConfig, err := SetupTLSConfig(model.TLSConfig{
+		tlsConfig, err := SetupTLSConfig(config.TLS{
 			CertFile:      "cert/client_cert.pem",
 			KeyFile:       "cert/client_key.pem",
 			CAFile:        "cert/ca_cert.pem",
@@ -74,7 +74,7 @@ func main() {
 	fmt.Println(tResp.Token)
 }
 
-func SetupTLSConfig(cfg model.TLSConfig) (*ctls.Config, error) {
+func SetupTLSConfig(cfg config.TLS) (*ctls.Config, error) {
 	var err error
 	tlsConfig := &ctls.Config{}
 	if cfg.CertFile != "" && cfg.KeyFile != "" {

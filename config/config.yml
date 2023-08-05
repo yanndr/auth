@@ -14,11 +14,14 @@ database:
   password: "autPassw@ord"
   dbName: "auth"
 password:
-  minLength: 6
-  minNumeric: 1
-  minUpperCase: 1
-  minLowerCase: 1
+  minLength: 4
+  minNumeric: 0
+  minUpperCase: 0
+  minLowerCase: 0
   minSpecial: 0
 token:
+  signingMethod: "HS256"
   signedKey: "fksdljfkljsd;akfjlfsdkfjsdkla"
+  audience: "audience_test"
+  issuer: "authservice.yannd.dev"
   expDuration: 5

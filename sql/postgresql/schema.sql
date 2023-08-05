@@ -2,7 +2,7 @@ CREATE TABLE users
 (
     id       BIGSERIAL PRIMARY KEY,
     username text NOT NULL UNIQUE ,
-    password text NOT NULL
+    password_hash text NOT NULL
 );
 
 CREATE TABLE version

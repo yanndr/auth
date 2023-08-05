@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"auth/pkg/model"
+	"auth/pkg/config"
 	"fmt"
 	"strings"
 	"unicode"
@@ -15,7 +15,7 @@ type PasswordValidator struct {
 	MinLower   int
 }
 
-func NewPasswordValidator(configuration model.Password) *PasswordValidator {
+func NewPasswordValidator(configuration config.Password) *PasswordValidator {
 	return &PasswordValidator{
 		MinLength:  configuration.MinLength,
 		MinNumeric: configuration.MinNumeric,
@@ -45,25 +45,27 @@ func (v PasswordValidator) Validate(value any) error {
 		}
 	}
 
-	sb := strings.Builder{}
+	errs := make([]string, 0)
+
 	if length < v.MinLength {
-		sb.WriteString(fmt.Sprintf("must be at least %v characters\n", v.MinLength))
+		errs = append(errs, fmt.Sprintf("must be at least %v characters", v.MinLength))
 	}
 	if numerics < v.MinNumeric {
-		sb.WriteString(fmt.Sprintf("must containt at least %v numeric characters\n", v.MinNumeric))
+
+		errs = append(errs, fmt.Sprintf("must containt at least %v numeric characters", v.MinNumeric))
 	}
 	if upper < v.MinUpper {
-		sb.WriteString(fmt.Sprintf("must containt at least %v uppercase characters\n", v.MinUpper))
+		errs = append(errs, fmt.Sprintf("must containt at least %v uppercase characters", v.MinUpper))
 	}
 	if lower < v.MinLower {
-		sb.WriteString(fmt.Sprintf("must containt at least %v lowercase characters\n", v.MinLower))
+		errs = append(errs, fmt.Sprintf("must containt at least %v lowercase characters", v.MinLower))
 	}
 	if special < v.MinSpecial {
-		sb.WriteString(fmt.Sprintf("must containt at least %v sepcial characters\n", v.MinSpecial))
+		errs = append(errs, fmt.Sprintf("must containt at least %v sepcial characters", v.MinSpecial))
 	}
 
-	if sb.Len() > 0 {
-		return fmt.Errorf("password validation error: %s", sb.String())
+	if len(errs) > 0 {
+		return fmt.Errorf("password validation error: %s", strings.Join(errs, ", "))
 	}
 	return nil
 

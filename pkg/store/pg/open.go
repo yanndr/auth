@@ -1,7 +1,7 @@
 package pg
 
 import (
-	"auth/pkg/model"
+	"auth/pkg/config"
 	embed "auth/sql/postgresql"
 	"context"
 	"database/sql"
@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-func Open(configuration model.DatabaseConfiguration) (*sql.DB, error) {
+func Open(configuration config.Database) (*sql.DB, error) {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		configuration.Host, configuration.Port, configuration.UserName, configuration.Password, configuration.DbName)
