@@ -1,11 +1,12 @@
 package services
 
 import (
-	errors2 "auth/pkg/errors"
+	autherrors "auth/pkg/errors"
 	"auth/pkg/models"
 	"auth/pkg/store"
 	"auth/pkg/validators"
 	"context"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,39 +17,43 @@ type UserService interface {
 type userService struct {
 	userStore store.UserStore
 	validator validators.Validator
+	hashCost  int
 }
 
-func NewUserService(userStore store.UserStore, validator validators.Validator) UserService {
+func NewUserService(userStore store.UserStore, validator validators.Validator, hashCost int) UserService {
 	return &userService{
 		userStore: userStore,
 		validator: validator,
+		hashCost:  hashCost,
 	}
 }
 
-func (s *userService) Create(ctx context.Context, user models.User) error {
-	err := s.validator.Validate(user)
+func (s *userService) Create(ctx context.Context, userRequest models.User) error {
+	err := s.validator.Validate(userRequest)
 	if err != nil {
-		return err
+		return fmt.Errorf("validation error: %w", err)
 	}
 
-	u, err := s.userStore.Get(ctx, user.Username)
+	u, err := s.userStore.Get(ctx, userRequest.Username)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting user from store: %w", err)
 	}
 	if u != nil {
-		return errors2.UsernameAlreadyExistErr{Name: user.Username}
+		return autherrors.UsernameAlreadyExistErr{Name: userRequest.Username}
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userRequest.Password), s.hashCost)
 	if err != nil {
-		return err
+		return fmt.Errorf("error during password hashing: %w", err)
+	}
+	user := models.User{
+		Username: userRequest.Username,
+		Password: string(hashedPassword),
 	}
 
-	user.PasswordHash = string(hashedPassword)
 	err = s.userStore.Create(ctx, user)
-
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating the user: %w", err)
 	}
 
 	return nil

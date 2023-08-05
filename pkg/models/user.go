@@ -1,7 +1,7 @@
 package models
 
 type User struct {
-	Username     string `validate:"required"`
-	Password     string `validate:"required"`
-	PasswordHash string
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	// Could have more fields firstname... but I focused on username/pwd
 }

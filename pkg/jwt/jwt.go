@@ -4,12 +4,12 @@ import (
 	"auth/pkg/config"
 	"auth/pkg/models"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"time"
 )
 
-type Generator interface {
-	GenerateJWT(user *models.User) (string, error)
+type JwtGenerator interface {
+	Generate(user models.User) (string, error)
 }
 
 type generator struct {
@@ -20,7 +20,7 @@ type generator struct {
 	expDuration   time.Duration
 }
 
-func NewGenerator(tokenConfig config.Token) Generator {
+func NewGenerator(tokenConfig config.Token) JwtGenerator {
 	return &generator{
 		signingMethod: jwt.GetSigningMethod(tokenConfig.SigningMethod),
 		signedString:  tokenConfig.SignedKey,
@@ -30,12 +30,11 @@ func NewGenerator(tokenConfig config.Token) Generator {
 	}
 }
 
-func (g *generator) GenerateJWT(user *models.User) (string, error) {
+func (g *generator) Generate(user models.User) (string, error) {
 	token := jwt.New(g.signingMethod)
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	claims["authorized"] = true
 	claims["sub"] = user.Username
 	claims["iss"] = g.issuer
 	claims["aud"] = g.audience

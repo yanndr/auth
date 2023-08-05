@@ -1,14 +1,11 @@
 package server
 
 import (
-	errors2 "auth/pkg/errors"
 	"auth/pkg/models"
 	"auth/pkg/pb"
 	"auth/pkg/services"
 	"context"
-	"errors"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"strings"
 )
@@ -52,12 +49,12 @@ func (a *AuthServer) Authenticate(ctx context.Context, req *pb.AuthenticateReque
 		strings.TrimSpace(req.Username),
 		strings.TrimSpace(req.Password),
 	)
-
-	if err != nil {
-		if errors.Is(err, errors2.AutenticationFailErr) {
-			return nil, status.Error(codes.Unauthenticated, "Authentication failed.")
-		}
-		return nil, status.Errorf(codes.Unknown, "%s", err)
+	s, ok := status.FromError(err)
+	if err != nil && ok {
+		return nil, s.Err()
+	} else if err != nil {
+		a.logger.Error("unknown error", zap.Error(err))
+		return nil, s.Err()
 	}
 
 	return &pb.AuthenticateResponse{

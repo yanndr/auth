@@ -23,7 +23,7 @@ func NewUserStore(q pg.Querier) UserStore {
 }
 
 func (s *userStore) Create(ctx context.Context, user models.User) error {
-	_, err := s.querier.CreateUser(ctx, pg.CreateUserParams{Username: user.Username, PasswordHash: user.PasswordHash})
+	_, err := s.querier.CreateUser(ctx, pg.CreateUserParams{Username: user.Username, PasswordHash: user.Password})
 	if err != nil {
 		return fmt.Errorf("error cerating the user %s: %w", user.Username, err)
 	}
@@ -43,5 +43,5 @@ func (s *userStore) Get(ctx context.Context, username string) (*models.User, err
 
 	}
 
-	return &models.User{Username: username, PasswordHash: u.PasswordHash}, nil
+	return &models.User{Username: u.Username, Password: u.PasswordHash}, nil
 }

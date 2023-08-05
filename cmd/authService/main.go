@@ -57,7 +57,7 @@ func main() {
 
 	jwtGenerator := jwt.NewGenerator(configuration.Token)
 
-	userService := services.NewUserService(userStore, userValidator)
+	userService := services.NewUserService(userStore, userValidator, 10)
 	authService := &services.JwtAuthenticationService{UserStore: userStore, JwtGenerator: jwtGenerator}
 
 	var opts []grpc.ServerOption

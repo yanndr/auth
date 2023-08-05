@@ -18,7 +18,14 @@ func (e UsernameAlreadyExistErr) GRPCStatus() *status.Status {
 	return status.Newf(codes.AlreadyExists, "a username %s already exists", e.Name)
 }
 
-var AutenticationFailErr = fmt.Errorf("authentication failed")
+type AuthenticationFailErr string
+
+func (e AuthenticationFailErr) Error() string {
+	return fmt.Sprintf("authentication failed for user %s", string(e))
+}
+func (AuthenticationFailErr) GRPCStatus() *status.Status {
+	return status.New(codes.Unauthenticated, "authentication failed")
+}
 
 type ValidationErr struct {
 	err   error
@@ -28,6 +35,7 @@ type ValidationErr struct {
 func (e ValidationErr) Error() string {
 	return fmt.Sprintf("validation error: %+v", e.err)
 }
+
 func (e ValidationErr) GRPCStatus() *status.Status {
 	return status.New(codes.InvalidArgument, e.err.Error())
 }
