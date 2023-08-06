@@ -51,7 +51,7 @@ func main() {
 
 	userStore := stores.NewPgUserStore(pg.New(db))
 	userValidator := validators.UserValidator{
-		Validator:         validator.New(),
+		StructValidator:   validator.New(),
 		PasswordValidator: validators.NewPasswordValidator(configuration.Password),
 	}
 

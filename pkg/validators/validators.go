@@ -12,7 +12,7 @@ type Validator interface {
 }
 
 type UserValidator struct {
-	Validator         *validator.Validate
+	StructValidator   *validator.Validate
 	PasswordValidator Validator
 }
 
@@ -21,7 +21,7 @@ func (v UserValidator) Validate(value any) error {
 	if !ok {
 		return autherror.NewValidationErr(fmt.Errorf("the input value is not a model.User"))
 	}
-	err := v.Validator.Struct(user)
+	err := v.StructValidator.Struct(user)
 	if err != nil {
 		return autherror.NewValidationErr(err)
 	}

@@ -28,12 +28,11 @@ func (AuthenticationFailErr) GRPCStatus() *status.Status {
 }
 
 type ValidationErr struct {
-	err   error
-	filed string
+	err error
 }
 
 func (e ValidationErr) Error() string {
-	return fmt.Sprintf("validation error: %+v", e.err)
+	return fmt.Sprint(e.err)
 }
 
 func (e ValidationErr) GRPCStatus() *status.Status {

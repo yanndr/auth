@@ -14,7 +14,7 @@ import (
 var (
 	mockUserStore    *tests.MockUserStore
 	mockValidator    *tests.MockValidator
-	mockJwtGenerator *tests.MockJwtGenerator
+	mockJwtGenerator *tests.MockTokenGenerator
 )
 
 func setupTest(t testing.TB) func(t testing.TB) {
@@ -22,7 +22,7 @@ func setupTest(t testing.TB) func(t testing.TB) {
 	defer ctrl.Finish()
 	mockUserStore = tests.NewMockUserStore(ctrl)
 	mockValidator = tests.NewMockValidator(ctrl)
-	mockJwtGenerator = tests.NewMockJwtGenerator(ctrl)
+	mockJwtGenerator = tests.NewMockTokenGenerator(ctrl)
 
 	return func(t testing.TB) {
 	}

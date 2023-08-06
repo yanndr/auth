@@ -5,7 +5,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Application struct {
+// AppSettings represent the settings for the application.
+type AppSettings struct {
 	Network   string
 	Address   string
 	GRPCPort  int
@@ -15,6 +16,7 @@ type Application struct {
 	Token     Token
 }
 
+// TLS settings
 type TLS struct {
 	UseTLS        bool
 	CertFile      string
@@ -23,6 +25,7 @@ type TLS struct {
 	ServerAddress string
 }
 
+// Database settings
 type Database struct {
 	Host     string
 	Port     int
@@ -31,6 +34,7 @@ type Database struct {
 	DbName   string
 }
 
+// Password settings
 type Password struct {
 	MinLength    int
 	MinNumeric   int
@@ -39,6 +43,7 @@ type Password struct {
 	MinSpecial   int
 }
 
+// Token settings
 type Token struct {
 	SigningMethod string
 	SignedKey     string
@@ -47,8 +52,9 @@ type Token struct {
 	ExpDuration   int
 }
 
-func LoadConfiguration(configName, configPath string) (*Application, error) {
-	configuration := &Application{}
+// LoadConfiguration parse a file (configName) Json or Yaml in the path configPath and returns an AppSettings configuration struct
+func LoadConfiguration(configName, configPath string) (*AppSettings, error) {
+	configuration := &AppSettings{}
 	viper.SetConfigName(configName)
 	viper.AddConfigPath(configPath)
 

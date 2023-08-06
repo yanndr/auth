@@ -10,7 +10,7 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockValidator is a mock of Validator interface.
+// MockValidator is a mock of StructValidator interface.
 type MockValidator struct {
 	ctrl     *gomock.Controller
 	recorder *MockValidatorMockRecorder

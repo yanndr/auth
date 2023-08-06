@@ -65,7 +65,7 @@ func (v PasswordValidator) Validate(value any) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("password validation error: %s", strings.Join(errs, ", "))
+		return fmt.Errorf("password doesn't meet security criteria: %s", strings.Join(errs, ", "))
 	}
 	return nil
 

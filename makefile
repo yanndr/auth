@@ -7,7 +7,7 @@ build:
 
 .PHONY: tests
 tests:
-	go test ./... -race
+	go test ./pkg/... -race
 
 .PHONY: proto
 proto:
@@ -35,3 +35,26 @@ mocks:
 docker-service:
 	docker build -t auth_authservice:latest .
 	docker build -t auth_authservice:${VERSION} .
+
+docker-db-test:
+	docker build -t auth_db ./sql/postgresql/
+	docker run  -d --rm --name auth_db_test \
+		--env POSTGRES_PASSWORD=passw@rd \
+		--env AUTH_USER_PWD=autPassw@ord \
+		--env AUTH_DB=auth \
+		--env AUTH_USER=auth_user\
+		-p 5433:5432 \
+		 auth_db
+
+pg-db-test:
+	docker build -t auth_db ./sql/postgresql/
+	docker run  -d --rm --name auth_db_test \
+		--env POSTGRES_PASSWORD=passw@rd \
+		--env AUTH_USER_PWD=autPassw@ord \
+		--env AUTH_DB=auth \
+		--env AUTH_USER=auth_user\
+		-p 5433:5432 \
+		 auth_db
+	sleep 5
+	go test -tags=pg_test ./pkg/... -race
+	docker stop auth_db_test

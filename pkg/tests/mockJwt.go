@@ -11,31 +11,31 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockJwtGenerator is a mock of JwtGenerator interface.
-type MockJwtGenerator struct {
+// MockTokenGenerator is a mock of TokenGenerator interface.
+type MockTokenGenerator struct {
 	ctrl     *gomock.Controller
-	recorder *MockJwtGeneratorMockRecorder
+	recorder *MockTokenGeneratorMockRecorder
 }
 
-// MockJwtGeneratorMockRecorder is the mock recorder for MockJwtGenerator.
-type MockJwtGeneratorMockRecorder struct {
-	mock *MockJwtGenerator
+// MockTokenGeneratorMockRecorder is the mock recorder for MockTokenGenerator.
+type MockTokenGeneratorMockRecorder struct {
+	mock *MockTokenGenerator
 }
 
-// NewMockJwtGenerator creates a new mock instance.
-func NewMockJwtGenerator(ctrl *gomock.Controller) *MockJwtGenerator {
-	mock := &MockJwtGenerator{ctrl: ctrl}
-	mock.recorder = &MockJwtGeneratorMockRecorder{mock}
+// NewMockTokenGenerator creates a new mock instance.
+func NewMockTokenGenerator(ctrl *gomock.Controller) *MockTokenGenerator {
+	mock := &MockTokenGenerator{ctrl: ctrl}
+	mock.recorder = &MockTokenGeneratorMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockJwtGenerator) EXPECT() *MockJwtGeneratorMockRecorder {
+func (m *MockTokenGenerator) EXPECT() *MockTokenGeneratorMockRecorder {
 	return m.recorder
 }
 
 // Generate mocks base method.
-func (m *MockJwtGenerator) Generate(user models.User) (string, error) {
+func (m *MockTokenGenerator) Generate(user models.User) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Generate", user)
 	ret0, _ := ret[0].(string)
@@ -44,7 +44,7 @@ func (m *MockJwtGenerator) Generate(user models.User) (string, error) {
 }
 
 // Generate indicates an expected call of Generate.
-func (mr *MockJwtGeneratorMockRecorder) Generate(user interface{}) *gomock.Call {
+func (mr *MockTokenGeneratorMockRecorder) Generate(user interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockJwtGenerator)(nil).Generate), user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockTokenGenerator)(nil).Generate), user)
 }

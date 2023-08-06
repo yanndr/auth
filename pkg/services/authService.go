@@ -16,10 +16,10 @@ type AuthService interface {
 
 type JwtAuthService struct {
 	UserStore    stores.UserStore
-	JwtGenerator jwt.JwtGenerator
+	JwtGenerator jwt.TokenGenerator
 }
 
-func NewJwtAuthService(userStore stores.UserStore, jwtGenerator jwt.JwtGenerator) AuthService {
+func NewJwtAuthService(userStore stores.UserStore, jwtGenerator jwt.TokenGenerator) AuthService {
 	return &JwtAuthService{
 		UserStore:    userStore,
 		JwtGenerator: jwtGenerator,

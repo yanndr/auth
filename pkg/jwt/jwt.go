@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type JwtGenerator interface {
+type TokenGenerator interface {
 	Generate(user models.User) (string, error)
 }
 
@@ -20,7 +20,7 @@ type generator struct {
 	expDuration   time.Duration
 }
 
-func NewGenerator(tokenConfig config.Token) JwtGenerator {
+func NewGenerator(tokenConfig config.Token) TokenGenerator {
 	return &generator{
 		signingMethod: jwt.GetSigningMethod(tokenConfig.SigningMethod),
 		signedString:  tokenConfig.SignedKey,
