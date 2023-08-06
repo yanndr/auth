@@ -3,7 +3,7 @@ package services
 import (
 	autherrors "auth/pkg/errors"
 	"auth/pkg/models"
-	"auth/pkg/store"
+	"auth/pkg/stores"
 	"auth/pkg/validators"
 	"context"
 	"fmt"
@@ -15,12 +15,12 @@ type UserService interface {
 }
 
 type userService struct {
-	userStore store.UserStore
+	userStore stores.UserStore
 	validator validators.Validator
 	hashCost  int
 }
 
-func NewUserService(userStore store.UserStore, validator validators.Validator, hashCost int) UserService {
+func NewUserService(userStore stores.UserStore, validator validators.Validator, hashCost int) UserService {
 	return &userService{
 		userStore: userStore,
 		validator: validator,

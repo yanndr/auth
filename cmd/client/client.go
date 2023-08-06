@@ -17,25 +17,62 @@ import (
 )
 
 var (
-	tls                = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	caFile             = flag.String("ca_file", "", "The file containing the CA root cert file")
-	serverAddr         = flag.String("addr", "localhost:50051", "The server address in the format of host:port")
-	serverHostOverride = flag.String("server_host_override", "sub.yannd.dev", "The server name used to verify the hostname returned by the TLS handshake")
-	username           = flag.String("username", "", "the username")
-	password           = flag.String("password", "", "the password")
+	subCmd = flag.NewFlagSet("sub", flag.ExitOnError)
+
+	tls      = subCmd.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
+	username = subCmd.String("username", "", "the username")
+	password = subCmd.String("password", "", "the password")
+
+	caFile     = subCmd.String("ca_file", "cert/ca_cert.pem", "The file containing the CA root cert file")
+	certFile   = subCmd.String("cert_file", "cert/client_cert.pem", "The file containing the client cert file")
+	keyFile    = subCmd.String("key_file", "cert/client_key.pem", "The file containing the client key file")
+	serverAddr = subCmd.String("addr", "localhost:50051", "The server address in the format of host:port")
 )
 
 func main() {
 
-	flag.Parse()
+	if len(os.Args) < 2 {
+		fmt.Println("expected 'create' or 'auth' subcommands")
+		os.Exit(1)
+	}
+
+	var cmd func(ctx context.Context, client pb.AuthClient) error
+	switch os.Args[1] {
+
+	case "create":
+		cmd = func(ctx context.Context, client pb.AuthClient) error {
+			response, err := client.CreateUser(ctx, &pb.CreateUserRequest{Username: *username, Password: *password})
+			if err != nil {
+				return err
+			}
+			fmt.Println(response)
+			return nil
+		}
+	case "auth":
+		cmd = func(ctx context.Context, client pb.AuthClient) error {
+			response, err := client.Authenticate(ctx, &pb.AuthenticateRequest{Username: *username, Password: *password})
+			if err != nil {
+				return err
+			}
+			fmt.Println(response)
+			return nil
+		}
+
+	default:
+		fmt.Println("expected 'create' or 'auth' subcommands")
+		os.Exit(1)
+	}
+
+	subCmd.Parse(os.Args[2:])
+
 	var opts []grpc.DialOption
 	if *tls {
 
 		tlsConfig, err := SetupTLSConfig(config.TLS{
-			CertFile:      "cert/client_cert.pem",
-			KeyFile:       "cert/client_key.pem",
-			CAFile:        "cert/ca_cert.pem",
-			ServerAddress: "localhost:50051",
+			CertFile:      *certFile,
+			KeyFile:       *keyFile,
+			CAFile:        *caFile,
+			ServerAddress: *serverAddr,
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -46,32 +83,20 @@ func main() {
 		opts = []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	}
 
-	// Create a connection with the TLS credentials
 	conn, err := grpc.Dial(*serverAddr, opts...)
 	if err != nil {
 		log.Fatalf("could not dial %s: %s", *serverAddr, err)
 	}
 
-	// Initialize the client and make the request
 	client := pb.NewAuthClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	resp, err := client.CreateUser(ctx, &pb.CreateUserRequest{Username: *username, Password: *password})
+	err = cmd(ctx, client)
 
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(resp.Success)
-	}
-
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	tResp, err := client.Authenticate(ctx, &pb.AuthenticateRequest{Username: *username, Password: *password})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(tResp.Token)
 }
 
 func SetupTLSConfig(cfg config.TLS) (*ctls.Config, error) {

@@ -3,23 +3,30 @@ package services
 import (
 	autherrors "auth/pkg/errors"
 	"auth/pkg/jwt"
-	"auth/pkg/store"
+	"auth/pkg/stores"
 	"context"
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Authentication interface {
+type AuthService interface {
 	Authenticate(ctx context.Context, username, password string) (string, error)
 }
 
-type JwtAuthenticationService struct {
-	UserStore    store.UserStore
+type JwtAuthService struct {
+	UserStore    stores.UserStore
 	JwtGenerator jwt.JwtGenerator
 }
 
-func (as *JwtAuthenticationService) Authenticate(ctx context.Context, username, password string) (string, error) {
+func NewJwtAuthService(userStore stores.UserStore, jwtGenerator jwt.JwtGenerator) AuthService {
+	return &JwtAuthService{
+		UserStore:    userStore,
+		JwtGenerator: jwtGenerator,
+	}
+}
+
+func (as *JwtAuthService) Authenticate(ctx context.Context, username, password string) (string, error) {
 	u, err := as.UserStore.Get(ctx, username)
 	if err != nil {
 		return "", fmt.Errorf("error getting user %s from store: %w", username, err)

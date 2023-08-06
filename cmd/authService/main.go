@@ -6,8 +6,8 @@ import (
 	"auth/pkg/pb"
 	"auth/pkg/server"
 	"auth/pkg/services"
-	"auth/pkg/store"
-	"auth/pkg/store/pg"
+	"auth/pkg/stores"
+	"auth/pkg/stores/pg"
 	"auth/pkg/validators"
 	"crypto/tls"
 	"crypto/x509"
@@ -28,7 +28,13 @@ import (
 var Version = "v0.1-dev"
 
 func main() {
-	log.Printf("starting auth service %v", Version)
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatal(err)
+	}
+	zap.ReplaceGlobals(logger)
+
+	logger.Info("starting auth service", zap.String("Version", Version))
 
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -43,13 +49,7 @@ func main() {
 	}
 	defer db.Close()
 
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		log.Fatal(err)
-	}
-	zap.ReplaceGlobals(logger)
-
-	userStore := store.NewUserStore(pg.New(db))
+	userStore := stores.NewPgUserStore(pg.New(db))
 	userValidator := validators.UserValidator{
 		Validator:         validator.New(),
 		PasswordValidator: validators.NewPasswordValidator(configuration.Password),
@@ -58,12 +58,12 @@ func main() {
 	jwtGenerator := jwt.NewGenerator(configuration.Token)
 
 	userService := services.NewUserService(userStore, userValidator, 10)
-	authService := &services.JwtAuthenticationService{UserStore: userStore, JwtGenerator: jwtGenerator}
+	authService := &services.JwtAuthService{UserStore: userStore, JwtGenerator: jwtGenerator}
 
 	var opts []grpc.ServerOption
 	if configuration.TLSConfig.UseTLS {
 		logger.Info("setup TLS")
-		tlsConfig, err := SetupTLSConfig(configuration.TLSConfig)
+		tlsConfig, err := setupTLSConfig(configuration.TLSConfig)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,13 +79,19 @@ func main() {
 	srv := grpc.NewServer(opts...)
 
 	pb.RegisterAuthServer(srv, server.NewServer(userService, authService))
-	log.Printf("listening on %s:%v ...", configuration.Address, configuration.GRPCPort)
+	logger.Info(
+		"service started",
+		zap.String("Network", configuration.Network),
+		zap.String("Address", configuration.Address),
+		zap.Int("Port", configuration.GRPCPort),
+	)
+
 	if err := srv.Serve(lis); err != nil {
 		log.Fatalf("grpc serve error: %s", err)
 	}
 }
 
-func SetupTLSConfig(cfg config.TLS) (*tls.Config, error) {
+func setupTLSConfig(cfg config.TLS) (*tls.Config, error) {
 	var err error
 	tlsConfig := &tls.Config{}
 	if cfg.CertFile != "" && cfg.KeyFile != "" {

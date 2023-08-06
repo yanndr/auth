@@ -6,7 +6,7 @@ openssl req -x509                                     \
   -days 3650                                          \
   -keyout ca_key.pem                                  \
   -out ca_cert.pem                                    \
-  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-server_ca/   \
+  -subj /C=CA/ST=BC/L=VAN/O=gRPC/CN=test-server_ca/   \
   -config ./openssl.cnf                               \
   -extensions test_ca                                 \
   -sha256
@@ -18,7 +18,7 @@ openssl req -x509                                     \
   -days 3650                                          \
   -keyout client_ca_key.pem                           \
   -out client_ca_cert.pem                             \
-  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-client_ca/   \
+  -subj /C=CA/ST=BC/L=VAN/O=gRPC/CN=test-client_ca/   \
   -config ./openssl.cnf                               \
   -extensions test_ca                                 \
   -sha256
@@ -29,7 +29,7 @@ openssl req -new                                    \
   -key server_key.pem                               \
   -days 3650                                        \
   -out server_csr.pem                               \
-  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-server1/   \
+  -subj /C=CA/ST=BC/L=VAN/O=gRPC/CN=test-server1/   \
   -config ./openssl.cnf                             \
   -reqexts test_server
 openssl x509 -req           \
@@ -50,7 +50,7 @@ openssl req -new                                    \
   -key client_key.pem                               \
   -days 3650                                        \
   -out client_csr.pem                               \
-  -subj /C=US/ST=CA/L=SVL/O=gRPC/CN=test-client1/   \
+  -subj /C=CA/ST=BC/L=VAN/O=gRPC/CN=test-client1/   \
   -config ./openssl.cnf                             \
   -reqexts test_client
 openssl x509 -req           \

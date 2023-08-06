@@ -2,7 +2,7 @@ network: "tcp"
 address: ""
 gRPCPort: 50051
 TLSConfig:
-  useTLS: true
+  useTLS: 'true'
   certFile: "cert/server_cert.pem"
   keyFile: "cert/server_key.pem"
   CAFile: ""

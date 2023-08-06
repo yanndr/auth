@@ -3,7 +3,7 @@
 //   sqlc v1.20.0
 // source: users.sql
 
-package pg
+package sqlite
 
 import (
 	"context"
@@ -11,11 +11,8 @@ import (
 )
 
 const createUser = `-- name: CreateUser :execresult
-INSERT INTO users (
-    username, password_hash
-) VALUES (
-             $1, $2
-         )
+INSERT INTO users (username, password_hash)
+VALUES (?, ?)
 `
 
 type CreateUserParams struct {
@@ -28,8 +25,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, password_hash FROM users
-WHERE username = $1 LIMIT 1
+SELECT id, username, password_hash
+FROM users
+WHERE username = ?
+LIMIT 1
 `
 
 func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {

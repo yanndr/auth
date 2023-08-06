@@ -1,4 +1,4 @@
-package embed
+package sqlite
 
 import _ "embed"
 

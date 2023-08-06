@@ -18,7 +18,7 @@ services:
     build: .
     environment:
       DATABASE_HOST: db
-      GRPCPORT: 50051
+      GRPCPORT: 50052
       TLSCONFIG_USETLS: 'false'
     ports:
-      - '50051:50051'
+      - '50052:50052'

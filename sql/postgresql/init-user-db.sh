@@ -7,3 +7,5 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 	GRANT ALL PRIVILEGES ON DATABASE $AUTH_DB TO $AUTH_USER;
 	ALTER DATABASE  $AUTH_DB OWNER TO $AUTH_USER;
 EOSQL
+
+psql -v ON_ERROR_STOP=1 --username "$AUTH_USER" --dbname "$AUTH_DB" -f /tmp/schema.sql

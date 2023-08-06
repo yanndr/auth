@@ -15,7 +15,7 @@ func (e UsernameAlreadyExistErr) Error() string {
 }
 
 func (e UsernameAlreadyExistErr) GRPCStatus() *status.Status {
-	return status.Newf(codes.AlreadyExists, "a username %s already exists", e.Name)
+	return status.Newf(codes.AlreadyExists, "username %s already exists", e.Name)
 }
 
 type AuthenticationFailErr string

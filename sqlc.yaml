@@ -7,5 +7,15 @@ sql:
     gen:
       go:
         package: "pg"
-        out: "pkg/store/pg"
+        out: "pkg/stores/pg"
+        emit_interface: true
+
+  - engine: "sqlite"
+    queries:
+      - "sql/sqlite/users.sql"
+    schema: "sql/sqlite/schema.sql"
+    gen:
+      go:
+        package: "sqlite"
+        out: "pkg/stores/sqlite"
         emit_interface: true

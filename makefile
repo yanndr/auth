@@ -25,6 +25,13 @@ cert:
 	cd cert && ./cert.sh
 
 mocks:
-	mockgen -source=./pkg/store/store.go -destination=./pkg/tests/mockStore.go -package=tests
+	mockgen -source=./pkg/stores/store.go -destination=./pkg/tests/mockStore.go -package=tests
 	mockgen -source=./pkg/jwt/jwt.go -destination=./pkg/tests/mockJwt.go -package=tests
 	mockgen -source=./pkg/validators/validators.go -destination=./pkg/tests/mockValidators.go -package=tests
+	#mockgen -source=./pkg/pb/auth_grpc.pb.go -destination=./pkg/tests/mockAuth_grpc.go -package=tests
+	mockgen -source=./pkg/services/userService.go -destination=./pkg/tests/mockUserService.go -package=tests
+	mockgen -source=./pkg/services/authentication.go -destination=./pkg/tests/mockAuthentication.go -package=tests
+
+docker-service:
+	docker build -t auth_authservice:latest .
+	docker build -t auth_authservice:${VERSION} .

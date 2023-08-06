@@ -25,7 +25,7 @@ func Test_authService_Authenticate_no_error(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(&user, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(user).Return("sdjklfjasdkl.jfsda.fasdf", nil).Times(1)
 
-	s := &JwtAuthenticationService{
+	s := &JwtAuthService{
 		UserStore:    mockUserStore,
 		JwtGenerator: mockJwtGenerator,
 	}
@@ -50,7 +50,7 @@ func Test_authService_Authenticate_store_get_error(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(nil, fmt.Errorf(errorMsg)).Times(1)
 	mockJwtGenerator.EXPECT().Generate(&user).Return("sdjklfjasdkl.jfsda.fasdf", nil).Times(0)
 
-	s := &JwtAuthenticationService{
+	s := &JwtAuthService{
 		UserStore:    mockUserStore,
 		JwtGenerator: mockJwtGenerator,
 	}
@@ -77,7 +77,7 @@ func Test_authService_Authenticate_store_no_user(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(nil, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(gomock.Any()).Times(0)
 
-	s := &JwtAuthenticationService{
+	s := &JwtAuthService{
 		UserStore:    mockUserStore,
 		JwtGenerator: mockJwtGenerator,
 	}
@@ -105,7 +105,7 @@ func Test_authService_Authenticate_password_mismatch(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(&user, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(&user).Times(0)
 
-	s := &JwtAuthenticationService{
+	s := &JwtAuthService{
 		UserStore:    mockUserStore,
 		JwtGenerator: mockJwtGenerator,
 	}
@@ -133,7 +133,7 @@ func Test_authService_Authenticate_bcrypt_error(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(&user, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(&user).Times(0)
 
-	s := &JwtAuthenticationService{
+	s := &JwtAuthService{
 		UserStore:    mockUserStore,
 		JwtGenerator: mockJwtGenerator,
 	}
@@ -163,7 +163,7 @@ func Test_authService_Authenticate_generator_error(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(&user, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(user).Return("", fmt.Errorf(errorMsg)).Times(1)
 
-	s := &JwtAuthenticationService{
+	s := &JwtAuthService{
 		UserStore:    mockUserStore,
 		JwtGenerator: mockJwtGenerator,
 	}

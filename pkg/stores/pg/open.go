@@ -2,8 +2,6 @@ package pg
 
 import (
 	"auth/pkg/config"
-	embed "auth/sql/postgresql"
-	"context"
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
@@ -25,11 +23,8 @@ func Open(configuration config.Database) (*sql.DB, error) {
 	}
 
 	_, err = db.Query("select * from version;")
-
 	if err != nil {
-		if _, err := db.ExecContext(context.Background(), embed.Schema); err != nil {
-			return nil, err
-		}
+		return nil, fmt.Errorf("db schema not present: %w", err)
 	}
 
 	return db, nil

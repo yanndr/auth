@@ -13,11 +13,11 @@ import (
 type AuthServer struct {
 	pb.AuthServer
 	userService services.UserService
-	authService services.Authentication
+	authService services.AuthService
 	logger      *zap.Logger
 }
 
-func NewServer(userService services.UserService, authService services.Authentication) *AuthServer {
+func NewServer(userService services.UserService, authService services.AuthService) *AuthServer {
 	return &AuthServer{
 		userService: userService,
 		authService: authService,
@@ -31,6 +31,7 @@ func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) 
 		Username: strings.TrimSpace(req.Username),
 		Password: strings.TrimSpace(req.Password),
 	})
+
 	s, ok := status.FromError(err)
 	if err != nil && ok {
 		return nil, s.Err()
