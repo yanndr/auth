@@ -13,14 +13,14 @@ import (
 )
 
 var (
-	mockAuthentication *tests.MockAuthentication
+	mockAuthentication *tests.MockAuthService
 	mockUserService    *tests.MockUserService
 )
 
 func setupTest(t testing.TB) func(t testing.TB) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockAuthentication = tests.NewMockAuthentication(ctrl)
+	mockAuthentication = tests.NewMockAuthService(ctrl)
 	mockUserService = tests.NewMockUserService(ctrl)
 
 	return func(t testing.TB) {
