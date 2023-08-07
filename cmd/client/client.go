@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
+	"github.com/spf13/pflag"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,28 +18,39 @@ import (
 )
 
 var (
-	subCmd = flag.NewFlagSet("sub", flag.ExitOnError)
+//subCmd = flag.NewFlagSet("sub", flag.ExitOnError)
 
-	tls      = subCmd.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	username = subCmd.String("username", "", "the username")
-	password = subCmd.String("password", "", "the password")
-
-	caFile     = subCmd.String("ca_file", "cert/ca_cert.pem", "The file containing the CA root cert file")
-	certFile   = subCmd.String("cert_file", "cert/client_cert.pem", "The file containing the client cert file")
-	keyFile    = subCmd.String("key_file", "cert/client_key.pem", "The file containing the client key file")
-	serverAddr = subCmd.String("addr", "localhost:50051", "The server address in the format of host:port")
+// tls      = pflag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
+// username = pflag.String("username", "", "the username")
+// password = pflag.String("password", "", "the password")
+//
+// caFile     = pflag.String("ca_file", "cert/ca_cert.pem", "The file containing the CA root cert file")
+// certFile   = pflag.String("cert_file", "cert/client_cert.pem", "The file containing the client cert file")
+// keyFile    = pflag.String("key_file", "cert/client_key.pem", "The file containing the client key file")
+// serverAddr = pflag.String("addr", "localhost:50051", "The server address in the format of host:port")
 )
 
 func main() {
+	defaults := pflag.NewFlagSet("defaults for all commands", pflag.ExitOnError)
+	tls := defaults.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
+	username := defaults.StringP("username", "u", "", "the username")
+	password := defaults.StringP("password", "p", "", "the password")
+
+	caFile := defaults.String("ca_file", "cert/ca_cert.pem", "The file containing the CA root cert file")
+	certFile := defaults.String("cert_file", "cert/client_cert.pem", "The file containing the client cert file")
+	keyFile := defaults.String("key_file", "cert/client_key.pem", "The file containing the client key file")
+	serverAddr := defaults.StringP("addr", "a", "localhost:50051", "The server address in the format of host:port")
+
+	defaults.Parse(os.Args)
 
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'create' or 'auth' subcommands")
+		pflag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	var cmd func(ctx context.Context, client pb.AuthClient) error
 	switch os.Args[1] {
-
 	case "create":
 		cmd = func(ctx context.Context, client pb.AuthClient) error {
 			response, err := client.CreateUser(ctx, &pb.CreateUserRequest{Username: *username, Password: *password})
@@ -57,17 +69,14 @@ func main() {
 			fmt.Println(response)
 			return nil
 		}
-
 	default:
 		fmt.Println("expected 'create' or 'auth' subcommands")
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
-	subCmd.Parse(os.Args[2:])
-
 	var opts []grpc.DialOption
 	if *tls {
-
 		tlsConfig, err := SetupTLSConfig(config.TLS{
 			CertFile:      *certFile,
 			KeyFile:       *keyFile,

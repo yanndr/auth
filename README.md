@@ -32,31 +32,35 @@ docker compose up authservice
 This command will start two containers: a PostgreSQL db and the Auth service
 
 ## Test the service
-### Unit tests:
+### With unit tests:
+
+Run all the unit tests (except integration tests) with the following command:
 ```shell
 make tests
 ```
-Run integration test with Postgresql (need docker)
+Run all the tests including integration tests with PostgreSQL (requires Docker)
 
 ```shell
 make tests-pg
 ```
 
 ### With a simple client
-I build a simple client to test the service
+I built a simple client to test the service
 
-build the client:
+Build the client:
 ```shell
-    make client
+make client
 ```
 
-The client have 2 sub command create
+The client has 2 sub commands, create and auth:
+
+create:
 ```shell
- ./authClient --username=test -password=pasw@rd 
+ ./authClient create --username=test -password=passw@rd 
 ```
-and auth
+auth
 ```shell
- ./authClient auth --username=test -password=pasw@rd 
+ ./authClient auth --username=test -password=passw@rd 
 ```
 
 additional flags are available:
@@ -85,12 +89,19 @@ If you want to test the service with TLS enabled do the following:
 ```shell
 make cert
 ```
-then update the config file in config/config.yml and change the value TLSConfig useTLS to true:  
-```yaml
-TLSConfig:
-  useTLS: 'true'
+then start the service with the flag tls:  
+```shell
+  ./authService --tls
 ```
-### Tool used
+
+Then run the client with the tls flag on:
+auth
+```shell
+ ./authClient auth --tls --username=test -password=passw@rd 
+```
+
+
+### Tools used
  - make https://www.gnu.org/software/make/
  - sqlc https://sqlc.dev/
  - openssl https://www.openssl.org/

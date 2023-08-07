@@ -10,9 +10,10 @@ import (
 	"auth/pkg/stores/sqlite"
 	"auth/pkg/validators"
 	"database/sql"
-	"flag"
 	"fmt"
 	"github.com/go-playground/validator/v10"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
 	"net"
@@ -21,18 +22,25 @@ import (
 var Version = "v0.1-dev"
 
 var (
-	configFile = flag.String("config_file", "config", "The name of the config file")
-	configPath = flag.String("config_path", "./config", "The path to the config file")
+	configFile = pflag.StringP("config_file", "c", "config", "The name of the config file")
+	configPath = pflag.StringP("config_path", "p", "./config", "The path to the config file")
+	tls        = pflag.Bool("tls", false, "use tls")
 )
 
 func main() {
-	flag.Parse()
+	pflag.Parse()
+
 	// setup log for this app
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatal(err)
 	}
 	zap.ReplaceGlobals(logger)
+
+	err = viper.BindPFlag("tlsconfig.usetls", pflag.CommandLine.Lookup("tls"))
+	if err != nil {
+		logger.Fatal("cannot map flag to config", zap.Error(err))
+	}
 
 	logger.Info("starting auth service", zap.String("Version", Version))
 
@@ -74,6 +82,7 @@ func main() {
 		zap.String("Network", configuration.Network),
 		zap.String("Address", configuration.Address),
 		zap.Int("Port", configuration.GRPCPort),
+		zap.Bool("TLS", configuration.TLSConfig.UseTLS),
 	)
 
 	lis, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.GRPCPort))
