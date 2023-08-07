@@ -23,7 +23,7 @@ type JwtAuthService struct {
 	logger       *zap.Logger
 }
 
-// NewJwtAuthService create a new instance of an AuthService using JWT
+// NewJwtAuthService creates a new instance of an AuthService using JWT
 func NewJwtAuthService(userStore stores.UserStore, jwtGenerator jwt.TokenGenerator) AuthService {
 	return &JwtAuthService{
 		UserStore:    userStore,
@@ -46,7 +46,7 @@ func (as *JwtAuthService) Authenticate(ctx context.Context, username, password s
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return "", autherrors.AuthenticationFailErr(u.Username)
 		}
-		as.logger.Error("failed to compare pwd", zap.Error(err))
+		as.logger.Error("failed to compare passwords", zap.Error(err))
 		return "", fmt.Errorf("error comparing password: %w", err)
 	}
 

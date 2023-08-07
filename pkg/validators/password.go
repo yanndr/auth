@@ -7,8 +7,7 @@ import (
 	"unicode"
 )
 
-// PasswordValidator is a password validator the check the Minimum length
-// and number of special character (Numeric, uppercase...) required.
+// PasswordValidator checks the minimum password length and number of special characters (Numeric, Uppercase...) required.
 type PasswordValidator struct {
 	MinLength  int
 	MinNumeric int
@@ -17,6 +16,7 @@ type PasswordValidator struct {
 	MinLower   int
 }
 
+// NewPasswordValidator creates a new instance of a PasswordValidator.
 func NewPasswordValidator(configuration config.Password) *PasswordValidator {
 	return &PasswordValidator{
 		MinLength:  configuration.MinLength,
@@ -63,7 +63,7 @@ func (v PasswordValidator) Validate(value any) error {
 		errs = append(errs, fmt.Sprintf("must containt at least %v lowercase characters", v.MinLower))
 	}
 	if special < v.MinSpecial {
-		errs = append(errs, fmt.Sprintf("must containt at least %v sepcial characters", v.MinSpecial))
+		errs = append(errs, fmt.Sprintf("must containt at least %v special characters", v.MinSpecial))
 	}
 
 	if len(errs) > 0 {

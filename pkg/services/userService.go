@@ -23,6 +23,7 @@ type userService struct {
 	logger    *zap.Logger
 }
 
+// NewUserService creates a new instance of an UserService.
 func NewUserService(userStore stores.UserStore, validator validators.Validator, hashCost int) UserService {
 	return &userService{
 		userStore: userStore,

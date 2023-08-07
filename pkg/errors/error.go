@@ -11,7 +11,7 @@ type UsernameAlreadyExistErr struct {
 }
 
 func (e UsernameAlreadyExistErr) Error() string {
-	return fmt.Sprintf("the entity with username:%s already exist", e.Name)
+	return fmt.Sprintf("the entity with username:%s already exists", e.Name)
 }
 
 func (e UsernameAlreadyExistErr) GRPCStatus() *status.Status {

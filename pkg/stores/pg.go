@@ -13,6 +13,7 @@ type PgUserStore struct {
 	querier pg.Querier
 }
 
+// NewPgUserStore creates a new instance of a UserStore for a PostgreSQL database.
 func NewPgUserStore(q pg.Querier) UserStore {
 	return &PgUserStore{querier: q}
 }
@@ -27,7 +28,6 @@ func (s *PgUserStore) Create(ctx context.Context, user models.User) error {
 }
 
 func (s *PgUserStore) Get(ctx context.Context, username string) (*models.User, error) {
-
 	u, err := s.querier.GetUser(ctx, username)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {

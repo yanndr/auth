@@ -30,7 +30,7 @@ func NewTokenGenerator(tokenConfig config.Token) TokenGenerator {
 	}
 }
 
-// Generate a token from the models.User
+// Generate generates a token from the models.User
 func (g *generator) Generate(user models.User) (string, error) {
 	token := jwt.New(g.signingMethod)
 

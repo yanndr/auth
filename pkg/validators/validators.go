@@ -8,7 +8,7 @@ import (
 )
 
 type Validator interface {
-	//Validate a value. Returns an error if not valid
+	//Validate a value and return an error if not valid.
 	Validate(value any) error
 }
 
@@ -18,7 +18,7 @@ type UserValidator struct {
 	PasswordValidator Validator
 }
 
-// NewUserValidator create a new instance of a Validator with a structure validator.Validate
+// NewUserValidator creates a new instance of a Validator with a structure validator.Validate
 // and a custom Validator for the password.
 func NewUserValidator(structValidator *validator.Validate, pwdValidator Validator) Validator {
 	return &UserValidator{

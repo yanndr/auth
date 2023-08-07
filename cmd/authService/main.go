@@ -88,7 +88,7 @@ func main() {
 	lis, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.GRPCPort))
 	if err != nil {
 		logger.Fatal(
-			"could start listener",
+			"could not start listener",
 			zap.String("address", configuration.Address),
 			zap.Int("port", configuration.GRPCPort),
 			zap.Error(err))

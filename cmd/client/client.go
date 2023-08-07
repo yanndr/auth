@@ -17,19 +17,6 @@ import (
 	"time"
 )
 
-var (
-//subCmd = flag.NewFlagSet("sub", flag.ExitOnError)
-
-// tls      = pflag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-// username = pflag.String("username", "", "the username")
-// password = pflag.String("password", "", "the password")
-//
-// caFile     = pflag.String("ca_file", "cert/ca_cert.pem", "The file containing the CA root cert file")
-// certFile   = pflag.String("cert_file", "cert/client_cert.pem", "The file containing the client cert file")
-// keyFile    = pflag.String("key_file", "cert/client_key.pem", "The file containing the client key file")
-// serverAddr = pflag.String("addr", "localhost:50051", "The server address in the format of host:port")
-)
-
 func main() {
 	defaults := pflag.NewFlagSet("defaults for all commands", pflag.ExitOnError)
 	tls := defaults.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
@@ -44,7 +31,7 @@ func main() {
 	defaults.Parse(os.Args)
 
 	if len(os.Args) < 2 {
-		fmt.Println("expected 'create' or 'auth' subcommands")
+		fmt.Println("subcommand expected: 'create' or 'auth'")
 		pflag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -70,7 +57,7 @@ func main() {
 			return nil
 		}
 	default:
-		fmt.Println("expected 'create' or 'auth' subcommands")
+		fmt.Println("subcommand expected: 'create' or 'auth'")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -127,7 +114,7 @@ func SetupTLSConfig(cfg config.TLS) (*ctls.Config, error) {
 			return nil, err
 		}
 		ca := x509.NewCertPool()
-		ok := ca.AppendCertsFromPEM([]byte(b))
+		ok := ca.AppendCertsFromPEM(b)
 		if !ok {
 			return nil, fmt.Errorf(
 				"failed to parse root certificate: %q",

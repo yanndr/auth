@@ -13,6 +13,7 @@ type SqliteUserStore struct {
 	querier sqlite.Querier
 }
 
+// NewSqliteUserStore creates a new instance of a UserStore for a SQLite database.
 func NewSqliteUserStore(q sqlite.Querier) UserStore {
 	return &SqliteUserStore{querier: q}
 }
@@ -27,7 +28,6 @@ func (s *SqliteUserStore) Create(ctx context.Context, user models.User) error {
 }
 
 func (s *SqliteUserStore) Get(ctx context.Context, username string) (*models.User, error) {
-
 	u, err := s.querier.GetUser(ctx, username)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {

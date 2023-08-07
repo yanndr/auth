@@ -24,9 +24,9 @@ type AuthServer struct {
 	logger      *zap.Logger
 }
 
-// NewGrpcServer creates a new GRPC server and register the AuthServe with services.UserService and services.AuthService
+// NewGrpcServer creates a new gRPC server and registers the AuthServer with services.UserService and services.AuthService
 func NewGrpcServer(configuration config.TLS, userService services.UserService, authService services.AuthService) (*grpc.Server, error) {
-	//Usually get more config here for logging and tracing middleware
+	//Usually I would set up logging, metrics and tracing middleware for gRPC, but I didn't for this application as it is beyond the scope of this assignment.
 	var opts []grpc.ServerOption
 	if configuration.UseTLS {
 		tlsConfig, err := setupTLSConfig(configuration)
@@ -43,7 +43,7 @@ func NewGrpcServer(configuration config.TLS, userService services.UserService, a
 	return srv, nil
 }
 
-// NewAuthServer create a new instance of  AuthServer with a services.UserService and a services.AuthService
+// NewAuthServer creates a new instance of AuthServer with a services.UserService and a services.AuthService
 func NewAuthServer(userService services.UserService, authService services.AuthService) *AuthServer {
 	return &AuthServer{
 		userService: userService,

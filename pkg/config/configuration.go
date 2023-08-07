@@ -59,7 +59,7 @@ type Token struct {
 	ExpDuration   int
 }
 
-// LoadConfiguration parse a file (configName) Json or Yaml in the path configPath and returns an AppSettings struct
+// LoadConfiguration parses a file (configName) Json or Yaml in the path configPath and returns an AppSettings struct.
 func LoadConfiguration(configName, configPath string) (*AppSettings, error) {
 	configuration := &AppSettings{}
 	viper.AutomaticEnv()
@@ -73,7 +73,7 @@ func LoadConfiguration(configName, configPath string) (*AppSettings, error) {
 
 	err := viper.Unmarshal(configuration)
 	if err != nil {
-		return configuration, fmt.Errorf("error reading config file: %w", err)
+		return configuration, fmt.Errorf("error parsing config file: %w", err)
 	}
 
 	return configuration, nil
