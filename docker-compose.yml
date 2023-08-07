@@ -12,6 +12,11 @@ services:
       AUTH_USER_PWD: autPassw@ord
       AUTH_DB: auth
       AUTH_USER: auth_user
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "auth" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
 
   testdb:
     build:
@@ -28,7 +33,7 @@ services:
   authservice:
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
     build: .
 
     environment:

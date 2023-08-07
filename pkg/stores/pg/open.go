@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"go.uber.org/zap"
 )
 
 func Open(configuration config.Database) (*sql.DB, error) {
@@ -19,8 +18,9 @@ func Open(configuration config.Database) (*sql.DB, error) {
 		configuration.SslMode,
 		configuration.RootCert,
 		configuration.SslKey,
-		configuration.SslCert)
-	zap.L().Debug("connstriing", zap.String("pg", psqlInfo))
+		configuration.SslCert,
+	)
+
 	db, err := sql.Open("postgres", psqlInfo)
 
 	if err != nil {

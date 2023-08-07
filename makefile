@@ -5,6 +5,9 @@ LDFLAGS=-ldflags "-X main.Version=${VERSION}"
 build:
 	go build ${LDFLAGS} -o authService cmd/authService/main.go
 
+client:
+	go build -o authClient cmd/client/client.go
+
 .PHONY: tests
 tests:
 	go test ./pkg/... -race
