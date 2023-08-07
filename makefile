@@ -28,7 +28,6 @@ mocks:
 	mockgen -source=./pkg/stores/store.go -destination=./pkg/tests/mockStore.go -package=tests
 	mockgen -source=./pkg/jwt/jwt.go -destination=./pkg/tests/mockJwt.go -package=tests
 	mockgen -source=./pkg/validators/validators.go -destination=./pkg/tests/mockValidators.go -package=tests
-	#mockgen -source=./pkg/pb/auth_grpc.pb.go -destination=./pkg/tests/mockAuth_grpc.go -package=tests
 	mockgen -source=./pkg/services/userService.go -destination=./pkg/tests/mockUserService.go -package=tests
 	mockgen -source=./pkg/services/authService.go -destination=./pkg/tests/mockAuthService.go -package=tests
 
@@ -36,7 +35,7 @@ docker-service:
 	docker build -t auth_authservice:latest .
 	docker build -t auth_authservice:${VERSION} .
 
-pg-db-test:
+tests-pg:
 	docker build -t auth_db -f Dockerfile_postgres .
 	docker run  -d --rm --name auth_db_test \
 		--env POSTGRES_PASSWORD=passw@rd \

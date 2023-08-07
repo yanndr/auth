@@ -13,6 +13,17 @@ services:
       AUTH_DB: auth
       AUTH_USER: auth_user
 
+  testdb:
+    build:
+      context: .
+      dockerfile: Dockerfile_postgres
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_PASSWORD: passw@rd
+      AUTH_USER_PWD: autPassw@ord
+      AUTH_DB: auth
+      AUTH_USER: auth_user
 
   authservice:
     depends_on:

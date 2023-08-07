@@ -13,12 +13,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-playground/validator/v10"
-	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
-	"net"
-
 	"log"
+	"net"
 )
 
 var Version = "v0.1-dev"
@@ -65,9 +62,8 @@ func main() {
 	userStore := stores.NewPgUserStore(pg.New(db))
 	userService := services.NewUserService(userStore, userValidator, 10)
 	authService := services.NewJwtAuthService(userStore, jwtGenerator)
-	grpcAuthServer := server.NewAuthServer(userService, authService)
 
-	srv, err := server.NewGrpcServer(configuration.TLSConfig, grpcAuthServer)
+	srv, err := server.NewGrpcServer(configuration.TLSConfig, userService, authService)
 
 	if err != nil {
 		log.Fatal(err)

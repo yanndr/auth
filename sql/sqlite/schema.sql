@@ -1,8 +1,8 @@
 CREATE TABLE users
 (
     id            INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    username      text NOT NULL,
-    password_hash text NOT NULL,
+    username      text NOT NULL CHECK(username <> ''),
+    password_hash text NOT NULL CHECK(password_hash <> ''),
     UNIQUE(username)
 );
 

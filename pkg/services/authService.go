@@ -16,6 +16,7 @@ type AuthService interface {
 	Authenticate(ctx context.Context, username, password string) (string, error)
 }
 
+// JwtAuthService is an implementation of AuthService that returns a JWT.
 type JwtAuthService struct {
 	UserStore    stores.UserStore
 	JwtGenerator jwt.TokenGenerator

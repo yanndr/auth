@@ -1,8 +1,8 @@
 CREATE TABLE users
 (
     id            BIGSERIAL PRIMARY KEY,
-    username      text NOT NULL UNIQUE,
-    password_hash text NOT NULL
+    username      text NOT NULL UNIQUE CHECK (username <> ''),
+    password_hash text NOT NULL CHECK (password_hash <> '')
 );
 
 CREATE INDEX username_idx ON users (username);

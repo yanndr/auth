@@ -24,7 +24,8 @@ type AuthServer struct {
 	logger      *zap.Logger
 }
 
-func NewGrpcServer(configuration config.TLS, authServer pb.AuthServer) (*grpc.Server, error) {
+// NewGrpcServer creates a new GRPC server and register the AuthServe with services.UserService and services.AuthService
+func NewGrpcServer(configuration config.TLS, userService services.UserService, authService services.AuthService) (*grpc.Server, error) {
 	//Usually get more config here for logging and tracing middleware
 	var opts []grpc.ServerOption
 	if configuration.UseTLS {
@@ -37,7 +38,7 @@ func NewGrpcServer(configuration config.TLS, authServer pb.AuthServer) (*grpc.Se
 	}
 
 	srv := grpc.NewServer(opts...)
-	pb.RegisterAuthServer(srv, authServer)
+	pb.RegisterAuthServer(srv, NewAuthServer(userService, authService))
 
 	return srv, nil
 }
@@ -110,7 +111,7 @@ func setupTLSConfig(cfg config.TLS) (*tls.Config, error) {
 			return nil, err
 		}
 		ca := x509.NewCertPool()
-		ok := ca.AppendCertsFromPEM([]byte(b))
+		ok := ca.AppendCertsFromPEM(b)
 		if !ok {
 			return nil, fmt.Errorf(
 				"failed to parse root certificate: %q",

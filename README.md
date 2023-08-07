@@ -43,7 +43,7 @@ make tests
 Run integration test with Postgresql (need docker)
 
 ```shell
-make pg-db-test
+make tests-pg
 ```
 
 ## Notes
