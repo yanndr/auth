@@ -10,13 +10,12 @@ TLSConfig:
 database:
   type: "sqlite"
   path: "auth.db"
-#  type: "postgres"
-#  host: "localhost"
-#  port: 5432
-#  userName: "auth_user"
-#  password: "autPassw@ord"
-#  dbName: "auth"
-#  sslMode: "disable"
+  host: ""
+  port:
+  userName: ""
+  password: ""
+  dbName: ""
+  sslMode: ""
 password:
   minLength: 4
   minNumeric: 0

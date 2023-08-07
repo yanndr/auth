@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"log"
+	"go.uber.org/zap"
 )
 
 func Open(configuration config.Database) (*sql.DB, error) {
@@ -20,14 +20,16 @@ func Open(configuration config.Database) (*sql.DB, error) {
 		configuration.RootCert,
 		configuration.SslKey,
 		configuration.SslCert)
+	zap.L().Debug("connstriing", zap.String("pg", psqlInfo))
 	db, err := sql.Open("postgres", psqlInfo)
+
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("error opening database: %w", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("connection to database not alive: %w", err)
 	}
 
 	_, err = db.Query("select * from version;")

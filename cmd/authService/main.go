@@ -38,7 +38,7 @@ func main() {
 
 	configuration, err := config.LoadConfiguration(*configFile, *configPath)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("error reading configuration", zap.Error(err))
 	}
 
 	var db *sql.DB
@@ -48,11 +48,11 @@ func main() {
 	case "postgres":
 		db, err = pg.Open(configuration.Database)
 	default:
-		log.Fatal("unknown database type")
+		logger.Fatal("unknown database type")
 	}
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("error opening database", zap.Error(err))
 	}
 	defer db.Close()
 
@@ -66,7 +66,7 @@ func main() {
 	srv, err := server.NewGrpcServer(configuration.TLSConfig, userService, authService)
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("error creating the grpc server", zap.Error(err))
 	}
 
 	logger.Info(
@@ -78,10 +78,14 @@ func main() {
 
 	lis, err := net.Listen(configuration.Network, fmt.Sprintf("%s:%v", configuration.Address, configuration.GRPCPort))
 	if err != nil {
-		log.Fatalf("could not listen on %s:%v: %s", configuration.Address, configuration.GRPCPort, err)
+		logger.Fatal(
+			"could start listener",
+			zap.String("address", configuration.Address),
+			zap.Int("port", configuration.GRPCPort),
+			zap.Error(err))
 	}
 
 	if err := srv.Serve(lis); err != nil {
-		log.Fatalf("grpc serve error: %s", err)
+		logger.Fatal("grpc server error", zap.Error(err))
 	}
 }
