@@ -7,6 +7,8 @@ import (
 	"unicode"
 )
 
+// PasswordValidator is a password validator the check the Minimum length
+// and number of special character (Numeric, uppercase...) required.
 type PasswordValidator struct {
 	MinLength  int
 	MinNumeric int
@@ -68,5 +70,4 @@ func (v PasswordValidator) Validate(value any) error {
 		return fmt.Errorf("password doesn't meet security criteria: %s", strings.Join(errs, ", "))
 	}
 	return nil
-
 }

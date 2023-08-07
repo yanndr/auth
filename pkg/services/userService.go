@@ -12,6 +12,7 @@ import (
 )
 
 type UserService interface {
+	//Create a new user from a models.User
 	Create(ctx context.Context, user models.User) error
 }
 

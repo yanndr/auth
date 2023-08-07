@@ -13,6 +13,7 @@ services:
       AUTH_DB: auth
       AUTH_USER: auth_user
 
+
   authservice:
     depends_on:
       db:
@@ -21,6 +22,12 @@ services:
 
     environment:
       DATABASE_HOST: db
+      DATABASE_TYPE: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: auth_user
+      DATABASE_PASSWORD: autPassw@ord
+      DATABASE_DBNAME: auth
+      DATABASE_SSLMODE: disable
       GRPCPORT: 50052
       TLSCONFIG_USETLS: 'false'
     ports:

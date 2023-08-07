@@ -35,7 +35,6 @@ func (s *PgUserStore) Get(ctx context.Context, username string) (*models.User, e
 		} else {
 			return nil, nil
 		}
-
 	}
 
 	return &models.User{Username: u.Username, Password: u.PasswordHash}, nil

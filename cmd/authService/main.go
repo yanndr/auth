@@ -7,10 +7,14 @@ import (
 	"auth/pkg/services"
 	"auth/pkg/stores"
 	"auth/pkg/stores/pg"
+	"auth/pkg/stores/sqlite"
 	"auth/pkg/validators"
+	"database/sql"
+	"flag"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 	"net"
 
@@ -19,8 +23,14 @@ import (
 
 var Version = "v0.1-dev"
 
+var (
+	configFile = flag.String("config_file", "config", "The name of the config file")
+	configPath = flag.String("config_path", "./config", "The path to the config file")
+)
+
 func main() {
-	// setup minimal log for this app
+	flag.Parse()
+	// setup log for this app
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatal(err)
@@ -29,12 +39,21 @@ func main() {
 
 	logger.Info("starting auth service", zap.String("Version", Version))
 
-	configuration, err := config.LoadConfiguration("config", "./config")
+	configuration, err := config.LoadConfiguration(*configFile, *configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db, err := pg.Open(configuration.Database)
+	var db *sql.DB
+	switch configuration.Database.Type {
+	case "sqlite":
+		db, err = sqlite.Open(configuration.Database.Path)
+	case "postgres":
+		db, err = pg.Open(configuration.Database)
+	default:
+		log.Fatal("unknown database type")
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,3 +1,6 @@
+//go:build pg_test
+// +build pg_test
+
 package integrations
 
 import (
@@ -16,6 +19,7 @@ func openPgDb() (*sql.DB, stores.UserStore, func(), error) {
 		UserName: "auth_user",
 		Password: "autPassw@ord",
 		DbName:   "auth",
+		SslMode:  "disable",
 	})
 	if err != nil {
 		return nil, nil, nil, err

@@ -77,10 +77,7 @@ func Test_authService_Authenticate_store_no_user(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(nil, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(gomock.Any()).Times(0)
 
-	s := &JwtAuthService{
-		UserStore:    mockUserStore,
-		JwtGenerator: mockJwtGenerator,
-	}
+	s := NewJwtAuthService(mockUserStore, mockJwtGenerator)
 
 	//Act
 	token, err := s.Authenticate(ctx, username, password)
@@ -105,10 +102,7 @@ func Test_authService_Authenticate_password_mismatch(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(&user, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(&user).Times(0)
 
-	s := &JwtAuthService{
-		UserStore:    mockUserStore,
-		JwtGenerator: mockJwtGenerator,
-	}
+	s := NewJwtAuthService(mockUserStore, mockJwtGenerator)
 
 	//Act
 	token, err := s.Authenticate(ctx, username, password)
@@ -133,10 +127,7 @@ func Test_authService_Authenticate_bcrypt_error(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(&user, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(&user).Times(0)
 
-	s := &JwtAuthService{
-		UserStore:    mockUserStore,
-		JwtGenerator: mockJwtGenerator,
-	}
+	s := NewJwtAuthService(mockUserStore, mockJwtGenerator)
 
 	//Act
 	token, err := s.Authenticate(ctx, username, password)
@@ -163,10 +154,7 @@ func Test_authService_Authenticate_generator_error(t *testing.T) {
 	mockUserStore.EXPECT().Get(ctx, username).Return(&user, nil).Times(1)
 	mockJwtGenerator.EXPECT().Generate(user).Return("", fmt.Errorf(errorMsg)).Times(1)
 
-	s := &JwtAuthService{
-		UserStore:    mockUserStore,
-		JwtGenerator: mockJwtGenerator,
-	}
+	s := NewJwtAuthService(mockUserStore, mockJwtGenerator)
 
 	//Act
 	token, err := s.Authenticate(ctx, username, password)

@@ -28,6 +28,8 @@ type TLS struct {
 
 // Database settings
 type Database struct {
+	Type     string
+	Path     string
 	Host     string
 	Port     int
 	UserName string

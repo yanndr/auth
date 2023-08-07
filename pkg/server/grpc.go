@@ -25,7 +25,7 @@ type AuthServer struct {
 }
 
 func NewGrpcServer(configuration config.TLS, authServer pb.AuthServer) (*grpc.Server, error) {
-	//Usually get more config here for logging and tracing
+	//Usually get more config here for logging and tracing middleware
 	var opts []grpc.ServerOption
 	if configuration.UseTLS {
 		tlsConfig, err := setupTLSConfig(configuration)
@@ -42,15 +42,16 @@ func NewGrpcServer(configuration config.TLS, authServer pb.AuthServer) (*grpc.Se
 	return srv, nil
 }
 
+// NewAuthServer create a new instance of  AuthServer with a services.UserService and a services.AuthService
 func NewAuthServer(userService services.UserService, authService services.AuthService) *AuthServer {
 	return &AuthServer{
 		userService: userService,
 		authService: authService,
 		logger:      zap.L().Named("gRPCAuthServer"),
 	}
-
 }
 
+// CreateUser creates a user form the pb.CreateUserRequest
 func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	a.logger.Info("CreateUser called")
 	err := a.userService.Create(ctx, models.User{
@@ -69,6 +70,7 @@ func (a *AuthServer) CreateUser(ctx context.Context, req *pb.CreateUserRequest) 
 	return &pb.CreateUserResponse{Success: true}, nil
 }
 
+// Authenticate a user from the request pb.AuthenticateRequest
 func (a *AuthServer) Authenticate(ctx context.Context, req *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
 	a.logger.Info("Authenticate called")
 	token, err := a.authService.Authenticate(
