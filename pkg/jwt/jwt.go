@@ -20,7 +20,7 @@ type generator struct {
 	expDuration   time.Duration
 }
 
-func NewGenerator(tokenConfig config.Token) TokenGenerator {
+func NewTokenGenerator(tokenConfig config.Token) TokenGenerator {
 	return &generator{
 		signingMethod: jwt.GetSigningMethod(tokenConfig.SigningMethod),
 		signedString:  tokenConfig.SignedKey,

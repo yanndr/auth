@@ -25,29 +25,39 @@ var (
 	userStore   stores.UserStore
 )
 
-func inMemoryUserStore() (*sql.DB, stores.UserStore, error) {
+func inMemoryUserStore() (*sql.DB, stores.UserStore, func(), error) {
 	database, err := sqlite.OpenInMemory()
 	if err != nil {
-		return nil, nil, fmt.Errorf("an error %v was not expected when opening a stub database connection", err)
+		return nil, nil, nil, fmt.Errorf("an error %v was not expected when opening a stub database connection", err)
 	}
-	return database, stores.NewSqliteUserStore(sqlite.New(database)), nil
+	tx, err := database.Begin()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	tearDown := func() {
+		tx.Rollback()
+	}
+
+	return database, stores.NewSqliteUserStore(sqlite.New(tx)), tearDown, nil
 }
 
-func setup(t testing.TB, storeFn func() (*sql.DB, stores.UserStore, error)) func(t testing.TB) {
+func setup(t testing.TB, storeFn func() (*sql.DB, stores.UserStore, func(), error)) func(t testing.TB) {
 
 	var err error
 	var database *sql.DB
-	database, userStore, err = storeFn()
+	var tearDown func()
+	database, userStore, tearDown, err = storeFn()
 	if err != nil {
 		t.Fatalf("an error %v was not expected when opening a stub database connection", err)
 	}
 
-	userValidator := validators.UserValidator{
+	userValidator := &validators.UserValidator{
 		StructValidator:   validator.New(),
 		PasswordValidator: validators.NewPasswordValidator(config.Password{}),
 	}
 	userService = services.NewUserService(userStore, userValidator, 10)
-	jwtGenerator := jwt.NewGenerator(config.Token{
+	jwtGenerator := jwt.NewTokenGenerator(config.Token{
 		SigningMethod: "HS256",
 		SignedKey:     "sdfsadfa",
 		Audience:      "audience",
@@ -56,9 +66,10 @@ func setup(t testing.TB, storeFn func() (*sql.DB, stores.UserStore, error)) func
 	})
 	authService = services.NewJwtAuthService(userStore, jwtGenerator)
 
-	grpcServer = server.NewServer(userService, authService)
+	grpcServer = server.NewAuthServer(userService, authService)
 
 	return func(t testing.TB) {
+		tearDown()
 		database.Close()
 	}
 }

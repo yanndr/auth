@@ -39,7 +39,7 @@ func TestAuthServer_CreateUser_no_error(t *testing.T) {
 		Password: password,
 	}
 	mockUserService.EXPECT().Create(ctx, user).Return(nil).Times(1)
-	server := NewServer(mockUserService, mockAuthentication)
+	server := NewAuthServer(mockUserService, mockAuthentication)
 
 	response, err := server.CreateUser(ctx, &pb.CreateUserRequest{
 		Username: username,
@@ -62,7 +62,7 @@ func TestAuthServer_CreateUser_create_username_exists(t *testing.T) {
 		Password: password,
 	}
 	mockUserService.EXPECT().Create(ctx, user).Return(errors.UsernameAlreadyExistErr{Name: username}).Times(1)
-	server := NewServer(mockUserService, mockAuthentication)
+	server := NewAuthServer(mockUserService, mockAuthentication)
 
 	response, err := server.CreateUser(ctx, &pb.CreateUserRequest{
 		Username: username,
@@ -86,7 +86,7 @@ func TestAuthServer_CreateUser_create_username_error(t *testing.T) {
 		Password: password,
 	}
 	mockUserService.EXPECT().Create(ctx, user).Return(fmt.Errorf("unexpected")).Times(1)
-	server := NewServer(mockUserService, mockAuthentication)
+	server := NewAuthServer(mockUserService, mockAuthentication)
 
 	response, err := server.CreateUser(ctx, &pb.CreateUserRequest{
 		Username: username,
@@ -107,7 +107,7 @@ func TestAuthServer_Authenticate_no_error(t *testing.T) {
 	password := "password"
 
 	mockAuthentication.EXPECT().Authenticate(ctx, username, password).Return("token", nil).Times(1)
-	server := NewServer(mockUserService, mockAuthentication)
+	server := NewAuthServer(mockUserService, mockAuthentication)
 
 	response, err := server.Authenticate(ctx, &pb.AuthenticateRequest{
 		Username: username,
@@ -128,7 +128,7 @@ func TestAuthServer_Authenticate_authService_authFailed(t *testing.T) {
 	password := "password"
 
 	mockAuthentication.EXPECT().Authenticate(ctx, username, password).Return("", errors.AuthenticationFailErr(username)).Times(1)
-	server := NewServer(mockUserService, mockAuthentication)
+	server := NewAuthServer(mockUserService, mockAuthentication)
 
 	response, err := server.Authenticate(ctx, &pb.AuthenticateRequest{
 		Username: username,
@@ -149,7 +149,7 @@ func TestAuthServer_Authenticate_authService_error(t *testing.T) {
 	password := "password"
 
 	mockAuthentication.EXPECT().Authenticate(ctx, username, password).Return("", fmt.Errorf("unexpected")).Times(1)
-	server := NewServer(mockUserService, mockAuthentication)
+	server := NewAuthServer(mockUserService, mockAuthentication)
 
 	response, err := server.Authenticate(ctx, &pb.AuthenticateRequest{
 		Username: username,

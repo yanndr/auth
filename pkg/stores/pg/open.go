@@ -9,9 +9,17 @@ import (
 )
 
 func Open(configuration config.Database) (*sql.DB, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		configuration.Host, configuration.Port, configuration.UserName, configuration.Password, configuration.DbName)
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s sslrootcert=%s sslkey=%s sslcert=%s",
+		configuration.Host,
+		configuration.Port,
+		configuration.UserName,
+		configuration.Password,
+		configuration.DbName,
+		configuration.SslMode,
+		configuration.RootCert,
+		configuration.SslKey,
+		configuration.SslCert)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Fatal(err)

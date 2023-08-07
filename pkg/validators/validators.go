@@ -16,7 +16,14 @@ type UserValidator struct {
 	PasswordValidator Validator
 }
 
-func (v UserValidator) Validate(value any) error {
+func NewUserValidator(structValidator *validator.Validate, pwdValidator Validator) Validator {
+	return &UserValidator{
+		StructValidator:   structValidator,
+		PasswordValidator: pwdValidator,
+	}
+}
+
+func (v *UserValidator) Validate(value any) error {
 	user, ok := value.(models.User)
 	if !ok {
 		return autherror.NewValidationErr(fmt.Errorf("the input value is not a model.User"))

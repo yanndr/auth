@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"strings"
 )
 
 // AppSettings represent the settings for the application.
@@ -32,6 +33,10 @@ type Database struct {
 	UserName string
 	Password string
 	DbName   string
+	SslMode  string
+	RootCert string
+	SslKey   string
+	SslCert  string
 }
 
 // Password settings
@@ -55,6 +60,8 @@ type Token struct {
 // LoadConfiguration parse a file (configName) Json or Yaml in the path configPath and returns an AppSettings configuration struct
 func LoadConfiguration(configName, configPath string) (*AppSettings, error) {
 	configuration := &AppSettings{}
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.SetConfigName(configName)
 	viper.AddConfigPath(configPath)
 

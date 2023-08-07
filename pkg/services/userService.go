@@ -7,6 +7,7 @@ import (
 	"auth/pkg/validators"
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,6 +19,7 @@ type userService struct {
 	userStore stores.UserStore
 	validator validators.Validator
 	hashCost  int
+	logger    *zap.Logger
 }
 
 func NewUserService(userStore stores.UserStore, validator validators.Validator, hashCost int) UserService {
@@ -25,6 +27,7 @@ func NewUserService(userStore stores.UserStore, validator validators.Validator, 
 		userStore: userStore,
 		validator: validator,
 		hashCost:  hashCost,
+		logger:    zap.L().Named("UserService"),
 	}
 }
 

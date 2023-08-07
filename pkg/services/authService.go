@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,12 +18,14 @@ type AuthService interface {
 type JwtAuthService struct {
 	UserStore    stores.UserStore
 	JwtGenerator jwt.TokenGenerator
+	logger       *zap.Logger
 }
 
 func NewJwtAuthService(userStore stores.UserStore, jwtGenerator jwt.TokenGenerator) AuthService {
 	return &JwtAuthService{
 		UserStore:    userStore,
 		JwtGenerator: jwtGenerator,
+		logger:       zap.L().Named("AuthService"),
 	}
 }
 

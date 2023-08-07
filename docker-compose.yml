@@ -2,7 +2,9 @@ version: '3.4'
 
 services:
   db:
-    build: sql/postgresql
+    build:
+      context: .
+      dockerfile: Dockerfile_postgres
     ports:
       - '5432:5432'
     environment:
@@ -16,6 +18,7 @@ services:
       db:
         condition: service_started
     build: .
+
     environment:
       DATABASE_HOST: db
       GRPCPORT: 50052

@@ -1,0 +1,8 @@
+FROM postgres:14
+
+COPY sql/postgresql/init-user-db.sh /docker-entrypoint-initdb.d/01.sh
+COPY sql/postgresql/schema.sql /tmp/schema.sql
+COPY cert/server_cert.pem /var/lib/postgresql/server_cert.pem
+COPY cert/server_key.pem /var/lib/postgresql/server_key.pem
+RUN chmod 400 var/lib/postgresql/server_cert.pem
+RUN chmod 400 var/lib/postgresql/server_key.pem

@@ -1,6 +1,3 @@
-//go:build pg_test
-// +build pg_test
-
 package integrations
 
 import (
@@ -12,7 +9,7 @@ import (
 	"testing"
 )
 
-func openPgDb() (*sql.DB, stores.UserStore, error) {
+func openPgDb() (*sql.DB, stores.UserStore, func(), error) {
 	database, err := pg.Open(config.Database{
 		Host:     "localhost",
 		Port:     5433,
@@ -21,10 +18,18 @@ func openPgDb() (*sql.DB, stores.UserStore, error) {
 		DbName:   "auth",
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
+	}
+	tx, err := database.Begin()
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
-	return database, stores.NewPgUserStore(pg.New(database)), nil
+	tearDown := func() {
+		tx.Rollback()
+	}
+
+	return database, stores.NewPgUserStore(pg.New(tx)), tearDown, nil
 }
 
 func Test_pg_Server_Create(t *testing.T) {
