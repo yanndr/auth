@@ -3,10 +3,10 @@ LDFLAGS=-ldflags "-X main.Version=${VERSION}"
 
 
 build:
-	go build ${LDFLAGS} -o authService cmd/authService/main.go
+	go build ${LDFLAGS} cmd/authService/authService.go
 
 client:
-	go build -o authClient cmd/client/client.go
+	go build cmd/client/client.go
 
 .PHONY: tests
 tests:

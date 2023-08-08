@@ -7,7 +7,7 @@ Note: locally the service is set up to store the data on a SQLite database. You 
 
 If you have Go 1.20 installed on your computer, you can run the service from the source:
 ```shell
-go run ./cmd/authService/main.go
+go run ./cmd/authService/authService.go
 ```
 Alternatively, you can first build the program and then run it:
 
