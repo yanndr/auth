@@ -2,7 +2,6 @@ package stores
 
 import (
 	"auth/pkg/models"
-	"auth/pkg/stores/pg"
 	"auth/pkg/stores/sqlite"
 	"context"
 	"database/sql"
@@ -15,8 +14,8 @@ var (
 	userStore UserStore
 )
 
-func setup(t testing.TB, openDbFn func() (*sql.DB, error)) func(t testing.TB) {
-	database, err := openDbFn()
+func setupSqlite(t testing.TB) func(t testing.TB) {
+	database, err := sqlite.OpenInMemory()
 	if err != nil {
 		t.Fatalf("an error %v was not expected when opening a test database connection", err)
 	}
@@ -24,7 +23,7 @@ func setup(t testing.TB, openDbFn func() (*sql.DB, error)) func(t testing.TB) {
 	if err != nil {
 		t.Fatalf("an error %v was not expected when opening a stub database transaction", err)
 	}
-	userStore = NewPgUserStore(pg.New(tx))
+	userStore = NewSqliteUserStore(sqlite.New(tx))
 
 	return func(t testing.TB) {
 		tx.Rollback()
@@ -41,14 +40,14 @@ func openSqliteDb() (*sql.DB, error) {
 }
 
 func TestSqliteUserStore_Create(t *testing.T) {
-	testCreateUser(t, openSqliteDb)
+	testCreateUser(t, setupSqlite)
 }
 
 func TestSqliteUserStore_Get(t *testing.T) {
-	testGetUser(t, openSqliteDb)
+	testGetUser(t, setupSqlite)
 }
 
-func testCreateUser(t *testing.T, openDbFn func() (*sql.DB, error)) {
+func testCreateUser(t *testing.T, setup func(t testing.TB) func(t testing.TB)) {
 	tests := []struct {
 		name    string
 		user    models.User
@@ -61,7 +60,7 @@ func testCreateUser(t *testing.T, openDbFn func() (*sql.DB, error)) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			teardown := setup(t, openDbFn)
+			teardown := setup(t)
 			defer teardown(t)
 			s := userStore
 			if err := s.Create(context.Background(), tt.user); (err != nil) != tt.wantErr {
@@ -71,7 +70,7 @@ func testCreateUser(t *testing.T, openDbFn func() (*sql.DB, error)) {
 	}
 }
 
-func testGetUser(t *testing.T, openDbFn func() (*sql.DB, error)) {
+func testGetUser(t *testing.T, setup func(t testing.TB) func(t testing.TB)) {
 	user := models.User{"test", "fsdjak"}
 	tests := []struct {
 		name         string
@@ -85,7 +84,7 @@ func testGetUser(t *testing.T, openDbFn func() (*sql.DB, error)) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			teardown := setup(t, openDbFn)
+			teardown := setup(t)
 			defer teardown(t)
 			s := userStore
 			_ = s.Create(context.Background(), tt.existingUser)

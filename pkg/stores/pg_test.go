@@ -1,14 +1,14 @@
+//go:build pg_test
+
 package stores
 
 import (
 	"auth/pkg/config"
 	"auth/pkg/stores/pg"
-	"database/sql"
-	"fmt"
 	"testing"
 )
 
-func openPgDb() (*sql.DB, error) {
+func setupPg(t testing.TB) func(t testing.TB) {
 	database, err := pg.Open(config.Database{
 		Host:     "localhost",
 		Port:     5433,
@@ -18,15 +18,24 @@ func openPgDb() (*sql.DB, error) {
 		SslMode:  "disable",
 	})
 	if err != nil {
-		return nil, fmt.Errorf("an error %v was not expected when opening a test database connection", err)
+		t.Fatalf("an error %v was not expected when opening a test database connection", err)
 	}
-	return database, nil
+	tx, err := database.Begin()
+	if err != nil {
+		t.Fatalf("an error %v was not expected when opening a stub database transaction", err)
+	}
+	userStore = NewPgUserStore(pg.New(tx))
+
+	return func(t testing.TB) {
+		tx.Rollback()
+		database.Close()
+	}
 }
 
 func TestPgUserStore_Create(t *testing.T) {
-	testCreateUser(t, openPgDb)
+	testCreateUser(t, setupPg)
 }
 
 func TestPgUserStore_Get(t *testing.T) {
-	testGetUser(t, openPgDb)
+	testGetUser(t, setupPg)
 }
