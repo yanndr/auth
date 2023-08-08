@@ -56,11 +56,11 @@ The client has 2 sub commands, create and auth:
 
 create:
 ```shell
- ./authClient create --username=test -password=passw@rd 
+ ./client create --username=test -password=passw@rd 
 ```
 auth
 ```shell
- ./authClient auth --username=test -password=passw@rd 
+ ./client auth --username=test -password=passw@rd 
 ```
 
 additional flags are available:
